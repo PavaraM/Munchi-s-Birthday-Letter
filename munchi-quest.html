@@ -42,7 +42,9 @@ body{
   background:#0f0a1e;
   position:relative;
   -webkit-tap-highlight-color:transparent;
+  cursor:none;
 }
+body.touch-device{cursor:auto;}
 button{font-family:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 h1,h2,h3{margin:0;font-weight:400;}
 p{margin:0;}
@@ -96,6 +98,17 @@ p{margin:0;}
   justify-content:center;
   backdrop-filter:blur(6px);
 }
+
+/* ---------- whimsical cursor ---------- */
+#curs{
+  position:fixed;pointer-events:none;z-index:9999;
+  font-size:22px;line-height:1;
+  transform:translate(0,0);
+  text-shadow:0 0 12px rgba(255,63,164,.7),0 0 24px rgba(201,166,255,.5);
+  transition:opacity .3s;
+  will-change:transform;
+}
+.touch-device #curs{display:none;}
 
 #progress-dots{
   position:fixed;
@@ -190,6 +203,7 @@ p{margin:0;}
   border:1.5px solid rgba(212,168,71,.2);
   position:relative;
   overflow:hidden;
+  touch-action:manipulation;
 }
 .continue-btn::before{
   content:'';
@@ -224,6 +238,7 @@ p{margin:0;}
   padding:16px 38px;
   border-radius:34px;
   box-shadow:0 10px 28px rgba(255,63,164,.35);
+  touch-action:manipulation;
 }
 .begin-btn:active{transform:scale(.96);}
 
@@ -267,6 +282,7 @@ p{margin:0;}
   border-radius:4px 4px 2px 2px;
   position:relative;
   flex-shrink:0;
+  touch-action:manipulation;
 }
 .candle .flame{
   position:absolute;
@@ -366,7 +382,7 @@ p{margin:0;}
   align-items:flex-start;
   padding:70px 24px 100px;
 }
-.envelope-wrap{cursor:pointer;}
+.envelope-wrap{cursor:pointer;touch-action:manipulation;}
 .envelope{
   position:relative;width:240px;height:156px;margin:10px auto 0;
   transition:opacity .6s ease, transform .6s ease;
@@ -411,7 +427,7 @@ p{margin:0;}
 }
 .letter-card .letter-kicker{
   font-family:var(--font-ui);font-size:.75rem;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--amber);margin-bottom:18px;
+  text-transform:uppercase;  color:var(--gold);margin-bottom:18px;
 }
 .letter-text p{
   font-family:var(--font-body);font-style:italic;
@@ -422,12 +438,14 @@ p{margin:0;}
   border:1.5px dashed var(--lilac);padding:16px;border-radius:10px;
   color:#8a7a85;font-style:normal !important;background:rgba(201,166,255,.06);
 }
-.letter-signoff{
+.letter-text p.letter-signoff{
   font-family:var(--font-display);
+  font-style:normal;
   font-size:clamp(1.4rem,4vw,1.8rem);
   color:var(--deep-pink);
   text-align:right;
   margin-top:1.5rem;
+  margin-bottom:0;
 }
 .letter-final-count{
   margin-top:24px;padding-top:18px;border-top:1px dashed var(--gold-light);
@@ -449,6 +467,7 @@ p{margin:0;}
 <body>
 
 <canvas id="ambient"></canvas>
+<div id="curs" aria-hidden="true">✦</div>
 
 <div id="countdown-chip">🌸 <span id="chip-text">loading…</span></div>
 <button id="mute-btn" aria-label="toggle sound">🔊</button>
@@ -470,7 +489,7 @@ p{margin:0;}
 </section>
 
 <!-- ================= CANDLES ================= -->
-<section class="stage" id="stage-candles">
+<section class="stage" id="stage-candles" tabindex="0">
   <div class="stage-content">
     <div class="eyebrow">✦ light the candles</div>
     <h2 class="stage-title">Candles</h2>
@@ -486,7 +505,7 @@ p{margin:0;}
 </section>
 
 <!-- ================= WISH ================= -->
-<section class="stage" id="stage-wish">
+<section class="stage" id="stage-wish" tabindex="0">
   <div class="stage-content">
     <div class="eyebrow">✦ write a wish</div>
     <h2 class="stage-title">Wish</h2>
@@ -498,7 +517,7 @@ p{margin:0;}
 </section>
 
 <!-- ================= SURPRISE ================= -->
-<section class="stage" id="stage-surprise">
+<section class="stage" id="stage-surprise" tabindex="0">
   <div class="stage-content">
     <div class="eyebrow">✦ the last stop</div>
     <h2 class="stage-title">Surprise</h2>
@@ -510,13 +529,13 @@ p{margin:0;}
 </section>
 
 <!-- ================= FINAL / LETTER ================= -->
-<section class="stage" id="stage-final">
+<section class="stage" id="stage-final" tabindex="0">
   <div class="stage-content" style="max-width:600px;">
     <div class="eyebrow">the last stop</div>
     <h2 class="stage-title" style="font-size:clamp(2.6rem,8vw,4rem);">For You</h2>
     <p class="stage-sub">open whenever you're ready</p>
 
-    <div class="envelope-wrap" id="envelope-wrap">
+    <div class="envelope-wrap" id="envelope-wrap" tabindex="0" role="button" aria-label="open envelope">
       <div class="envelope" id="envelope">
         <div class="env-body"></div>
         <div class="env-flap"></div>
@@ -578,7 +597,7 @@ function updateCountdown(){
   const text = formatCountdown();
   document.getElementById('chip-text').innerHTML = text;
   document.getElementById('landing-countdown').innerHTML = text;
-  document.getElementById('letter-countdown').innerHTML = "🎂 " + text;
+  document.getElementById('letter-countdown').innerHTML = (text.startsWith("it's") ? "" : "🎂 ") + text;
 }
 updateCountdown();
 setInterval(updateCountdown, 1000);
@@ -636,7 +655,9 @@ function resize(){ W = canvas.width = innerWidth; H = canvas.height = innerHeigh
 resize();
 addEventListener('resize', resize);
 
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+let reducedMotion = motionQuery.matches;
+motionQuery.addEventListener('change', () => { reducedMotion = motionQuery.matches; });
 
 const THEMES = {
   landing:  { shapes:['sparkle','heart','star'], colors:['#FF3FA4','#C9A6FF','#00CED1'], dir:'up',   rate:reducedMotion?0.06:0.35 },
@@ -704,12 +725,6 @@ function drawShape(p){
     ctx.beginPath();
     ctx.ellipse(0,0, s*0.5, s, 0, 0, Math.PI*2);
     ctx.fill();
-  } else if (p.shape === 'leafp'){
-    ctx.beginPath();
-    ctx.moveTo(0,-s);
-    ctx.quadraticCurveTo(s,0,0,s);
-    ctx.quadraticCurveTo(-s,0,0,-s);
-    ctx.fill();
   }
   ctx.restore();
 }
@@ -732,12 +747,69 @@ function tick(){
     drawShape(p);
   });
   particles = particles.filter(p => p.life < p.maxLife && p.y > -40 && p.y < H+40);
-  requestAnimationFrame(tick);
+  animFrame = requestAnimationFrame(tick);
 }
-tick();
+let animFrame = requestAnimationFrame(tick);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    cancelAnimationFrame(animFrame);
+  } else {
+    animFrame = requestAnimationFrame(tick);
+  }
+});
 
 function burst(theme, x, y, count){
   for (let i=0;i<count;i++) spawnParticle(theme, x, y, true);
+}
+
+/* ============================================================
+   WHIMSICAL CURSOR — sparkle trail + eased follower
+   ============================================================ */
+const isTouch = 'ontouchstart' in window;
+if (isTouch) document.body.classList.add('touch-device');
+
+const curs = document.getElementById('curs');
+let cursX = -100, cursY = -100;
+let cursCX = -100, cursCY = -100;
+
+function moveCurs(e){
+  cursCX = e.clientX;
+  cursCY = e.clientY;
+}
+
+function tickCurs(){
+  cursX += (cursCX - cursX) * 0.2;
+  cursY += (cursCY - cursY) * 0.2;
+  curs.style.transform = 'translate(' + cursX + 'px,' + cursY + 'px)';
+  requestAnimationFrame(tickCurs);
+}
+tickCurs();
+
+if (!isTouch){
+  addEventListener('mousemove', moveCurs);
+}
+
+/* ---- sparkle trail ---- */
+let lastTrail = 0;
+function onPointerMove(e){
+  const now = Date.now();
+  if (now - lastTrail < 40) return;
+  lastTrail = now;
+  const x = e.clientX, y = e.clientY;
+  if (currentTheme){
+    spawnParticle(currentTheme, x + rand(-4,4), y + rand(-4,4), false);
+    if (Math.random() < 0.35){
+      spawnParticle(currentTheme, x + rand(-8,8), y + rand(-8,8), false);
+    }
+  }
+}
+
+if (!isTouch){
+  addEventListener('mousemove', onPointerMove);
+  addEventListener('click', function(e){
+    if (currentTheme) burst(currentTheme, e.clientX, e.clientY, 5);
+  });
 }
 
 /* ============================================================
@@ -794,6 +866,13 @@ JOURNEY.forEach((stage, i) => {
 
   let tapCount = 0;
 
+  section.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      section.click();
+    }
+  });
+
   section.addEventListener('click', (e) => {
     if (e.target.closest('.continue-btn')) return;
 
@@ -846,7 +925,8 @@ JOURNEY.forEach((stage, i) => {
 });
 
 /* ---- final stage: envelope + letter ---- */
-document.getElementById('envelope-wrap').addEventListener('click', function(){
+const envWrap = document.getElementById('envelope-wrap');
+envWrap.addEventListener('click', function(){
   const env = document.getElementById('envelope');
   if (env.classList.contains('open')) return;
   env.classList.add('open');
@@ -860,6 +940,12 @@ document.getElementById('envelope-wrap').addEventListener('click', function(){
       reducedMotion ? 10 : 36
     );
   }, 900);
+});
+envWrap.addEventListener('keydown', function(e){
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    this.click();
+  }
 });
 </script>
 </body>
