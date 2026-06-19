@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>for Munchi Panchi 🌸</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CONFIG-ADJACENT NOTE FOR PAVARA:
+   Her display name + birthday are set in the <script> CONFIG
+   block near the bottom of this file. The actual LETTER TEXT
+   lives near the end of the HTML body, clearly marked.
+   ============================================================ */
+
+:root{
+  --hot-pink:#FF3FA4;
+  --deep-pink:#C2185B;
+  --baby-pink:#FFD6EC;
+  --lilac:#C9A6FF;
+  --lilac-light:#E8DBFF;
+  --gold:#D4A847;
+  --gold-light:#F2D88F;
+  --amber:#C8682E;
+  --amber-light:#EFA15C;
+  --cream:#FFF8F0;
+  --ink:#3A1A2E;
+  --font-display:'Mrs Saint Delafield', cursive;
+  --font-body:'Cormorant Garamond', serif;
+  --font-ui:'Quicksand', sans-serif;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+body{
+  font-family:var(--font-ui);
+  color:var(--ink);
+  background:#1a0f17;
+  position:relative;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+h1,h2,h3{margin:0;font-weight:400;}
+p{margin:0;}
+
+/* ---------- ambient particle canvas ---------- */
+#ambient{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:1;
+  pointer-events:none;
+}
+
+/* ---------- persistent UI chrome ---------- */
+#countdown-chip{
+  position:fixed;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:50;
+  background:rgba(58,26,46,.55);
+  backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  font-family:var(--font-ui);
+  font-weight:600;
+  font-size:clamp(.7rem,2vw,.85rem);
+  letter-spacing:.03em;
+  padding:7px 16px;
+  border-radius:30px;
+  text-align:center;
+  white-space:nowrap;
+}
+#countdown-chip span.num{color:var(--gold-light);}
+
+#mute-btn{
+  position:fixed;
+  bottom:18px;
+  right:18px;
+  z-index:50;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:rgba(58,26,46,.55);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(6px);
+}
+
+#progress-dots{
+  position:fixed;
+  bottom:18px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:50;
+  display:flex;
+  gap:8px;
+}
+#progress-dots .dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,.3);
+  transition:background .4s ease, transform .4s ease;
+}
+#progress-dots .dot.filled{background:var(--gold-light);transform:scale(1.3);}
+
+/* ---------- stage system ---------- */
+.stage{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:90px 24px 80px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .9s ease;
+}
+.stage.active{opacity:1;pointer-events:auto;}
+.stage-content{
+  max-width:560px;
+  width:100%;
+  text-align:center;
+  transform:translateY(18px);
+  opacity:0;
+  transition:transform .8s cubic-bezier(.2,.8,.2,1) .15s, opacity .8s ease .15s;
+}
+.stage.active .stage-content{transform:translateY(0);opacity:1;}
+
+.eyebrow{
+  font-family:var(--font-ui);
+  font-size:.75rem;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  opacity:.7;
+  margin-bottom:10px;
+}
+.stage-title{
+  font-family:var(--font-display);
+  font-size:clamp(3rem,10vw,5.2rem);
+  line-height:1;
+  margin-bottom:14px;
+}
+.stage-sub{
+  font-family:var(--font-body);
+  font-style:italic;
+  font-size:clamp(1.05rem,2.6vw,1.3rem);
+  opacity:.9;
+  margin-bottom:34px;
+}
+
+.combo-display{
+  font-family:var(--font-ui);
+  font-size:.9rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  margin-bottom:16px;
+  opacity:0;
+  transform:scale(0.8);
+  transition:opacity .3s ease, transform .3s ease;
+}
+.combo-display.active{
+  opacity:1;transform:scale(1);
+  background:linear-gradient(135deg,rgba(255,63,164,.15),rgba(201,166,255,.15));
+  padding:12px 20px;border-radius:12px;
+  border:1.5px solid rgba(242,216,143,.3);
+  backdrop-filter:blur(8px);
+}
+.combo-label{
+  font-size:.75rem;
+  opacity:.6;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--gold-light);
+}
+.combo-count{
+  font-size:2rem;
+  font-weight:800;
+  background:linear-gradient(135deg,var(--hot-pink),var(--lilac));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  display:block;
+  animation:combo-pulse .25s ease;
+}
+.combo-bar{
+  width:100%;max-width:120px;height:4px;
+  background:rgba(255,255,255,.1);
+  border-radius:2px;
+  margin-top:8px;
+  overflow:hidden;
+}
+.combo-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--hot-pink),var(--lilac),var(--gold-light));
+  border-radius:2px;
+  transition:width .2s ease;
+  box-shadow:0 0 12px rgba(255,63,164,.6);
+}
+@keyframes combo-pulse{
+  0%{transform:scale(1.3);opacity:1;}
+  100%{transform:scale(1);opacity:1;}
+}
+.combo-milestone{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-family:var(--font-display);
+  font-size:clamp(1.5rem,8vw,3rem);
+  background:linear-gradient(135deg,var(--hot-pink),var(--lilac));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  pointer-events:none;
+  z-index:100;
+  animation:milestone-burst .9s cubic-bezier(.2,.8,.2,1);
+  font-weight:700;
+  letter-spacing:.05em;
+}
+@keyframes milestone-burst{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1;}
+  50%{opacity:1;}
+  100%{transform:translate(-50%,-50%) scale(2);opacity:0;}
+}
+
+.stage-progress{
+  position:absolute;top:20px;right:20px;
+  font-size:.8rem;
+  color:rgba(255,255,255,.5);
+  font-family:var(--font-ui);
+  font-weight:600;
+  letter-spacing:.04em;
+}
+
+.continue-btn{
+  margin-top:38px;
+  font-family:var(--font-ui);
+  font-weight:700;
+  font-size:.95rem;
+  letter-spacing:.04em;
+  color:var(--ink);
+  background:linear-gradient(135deg,var(--gold-light),var(--gold));
+  padding:13px 30px;
+  border-radius:30px;
+  box-shadow:0 8px 22px rgba(212,168,71,.35);
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(8px);
+  transition:opacity .6s ease, transform .6s ease;
+  border:1.5px solid rgba(212,168,71,.2);
+  position:relative;
+  overflow:hidden;
+}
+.continue-btn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:translateX(-100%);
+  animation:shimmer 2s infinite;
+}
+@keyframes shimmer{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(100%);}
+}
+.continue-btn.revealed{
+  opacity:1;pointer-events:auto;transform:translateY(0);
+  box-shadow:0 12px 32px rgba(212,168,71,.5),0 0 20px rgba(242,216,143,.4);
+}
+.continue-btn.locked{
+  opacity:.35;
+  background:linear-gradient(135deg,#555,#333);
+  color:#999;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+.continue-btn:active:not(.locked){transform:scale(.96);}
+
+.begin-btn{
+  font-family:var(--font-ui);
+  font-weight:700;
+  font-size:1.05rem;
+  letter-spacing:.04em;
+  color:var(--ink);
+  background:linear-gradient(135deg,#fff,var(--baby-pink));
+  padding:16px 38px;
+  border-radius:34px;
+  box-shadow:0 10px 28px rgba(255,63,164,.35);
+}
+.begin-btn:active{transform:scale(.96);}
+
+/* ---------- LANDING ---------- */
+#stage-landing{
+  background:radial-gradient(circle at 30% 20%, rgba(255,63,164,.35), transparent 55%),
+             radial-gradient(circle at 75% 75%, rgba(201,166,255,.35), transparent 55%),
+             linear-gradient(160deg,#2a1320,#1a0f17 60%);
+}
+.landing-name{
+  font-family:var(--font-display);
+  font-size:clamp(3.2rem,11vw,5.8rem);
+  background:linear-gradient(90deg,var(--hot-pink),var(--lilac),var(--gold-light));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  line-height:1.05;
+  margin-bottom:6px;
+}
+.landing-sub{
+  font-family:var(--font-body);
+  font-style:italic;
+  color:#f4e9f0;
+  font-size:clamp(1.05rem,2.6vw,1.3rem);
+  margin-bottom:8px;
+}
+.landing-count{
+  font-family:var(--font-ui);
+  font-weight:600;
+  color:var(--gold-light);
+  font-size:.9rem;
+  margin-bottom:36px;
+  letter-spacing:.03em;
+}
+
+/* ---------- PINK STAGE: QUIZ MCQ ---------- */
+#stage-pink{
+  background:radial-gradient(circle at 50% 30%, rgba(255,63,164,.35), transparent 60%),
+             linear-gradient(170deg,#3a0f2a,#1a0f17 65%);
+}
+.quiz-container{
+  max-width:480px;
+  margin:20px auto;
+}
+.quiz-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:24px 0;
+}
+.quiz-btn{
+  background:linear-gradient(135deg,rgba(255,63,164,.15),rgba(201,166,255,.1));
+  border:1.5px solid rgba(255,63,164,.3);
+  border-radius:12px;
+  padding:18px 14px;
+  color:rgba(255,255,255,.9);
+  font-family:var(--font-ui);
+  font-weight:600;
+  font-size:.9rem;
+  cursor:pointer;
+  transition:all .3s ease;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  text-align:center;
+}
+.quiz-btn:hover{
+  background:linear-gradient(135deg,rgba(255,63,164,.25),rgba(201,166,255,.2));
+  border-color:rgba(255,63,164,.6);
+  transform:translateY(-2px);
+  box-shadow:0 8px 16px rgba(255,63,164,.2);
+}
+.quiz-btn.selected{
+  background:linear-gradient(135deg,var(--hot-pink),var(--lilac));
+  border-color:var(--gold-light);
+  color:var(--ink);
+  box-shadow:0 12px 24px rgba(255,63,164,.4);
+}
+.quiz-label{
+  font-size:1.2rem;
+  font-weight:700;
+  color:var(--gold-light);
+}
+.quiz-text{
+  font-size:.85rem;
+}
+
+/* ---------- LILY STAGE: PUZZLE DRAG-DROP ---------- */
+#stage-lily{
+  background:radial-gradient(circle at 50% 25%, rgba(201,166,255,.25), transparent 60%),
+             linear-gradient(170deg,#241a30,#1a0f17 65%);
+}
+.puzzle-container{
+  margin:30px 0;
+}
+.timeline-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  max-width:420px;
+  margin:0 auto;
+  min-height:300px;
+  background:linear-gradient(135deg,rgba(201,166,255,.08),rgba(255,63,164,.08));
+  border:1.5px dashed rgba(201,166,255,.4);
+  border-radius:16px;
+  padding:20px;
+  position:relative;
+}
+.puzzle-item{
+  background:linear-gradient(135deg,var(--lilac-light),rgba(201,166,255,.3));
+  border:1.5px solid var(--lilac);
+  border-radius:10px;
+  padding:16px;
+  text-align:center;
+  font-weight:600;
+  color:var(--ink);
+  cursor:grab;
+  transition:all .2s ease;
+  user-select:none;
+}
+.puzzle-item:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 16px rgba(201,166,255,.3);
+  border-color:var(--lilac);
+}
+.puzzle-item.dragging{
+  cursor:grabbing;
+  opacity:.7;
+  transform:scale(.95);
+}
+.puzzle-item.correct{
+  background:linear-gradient(135deg,var(--gold-light),var(--gold));
+  border-color:var(--gold);
+  color:var(--ink);
+}
+.correct-msg{
+  text-align:center;
+  font-weight:600;
+  color:var(--gold-light);
+  margin-top:16px;
+  min-height:1.5em;
+}
+
+/* ---------- WINX STAGE: WORD PUZZLE ---------- */
+#stage-winx{
+  background:radial-gradient(circle at 50% 35%, rgba(201,166,255,.4), transparent 60%),
+             linear-gradient(170deg,#2a1438,#1a0f17 65%);
+}
+.word-puzzle{
+  max-width:400px;
+  margin:30px auto;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+.scrambled-word{
+  font-size:2.4rem;
+  font-weight:800;
+  letter-spacing:.3em;
+  text-align:center;
+  color:var(--lilac);
+  font-family:var(--font-display);
+  padding:24px;
+  background:linear-gradient(135deg,rgba(201,166,255,.1),rgba(255,63,164,.08));
+  border-radius:12px;
+  border:1.5px solid rgba(201,166,255,.3);
+}
+.word-input{
+  padding:14px 16px;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(242,216,143,.3);
+  border-radius:10px;
+  color:#fff;
+  font-size:1.1rem;
+  font-family:var(--font-ui);
+  text-align:center;
+  letter-spacing:.05em;
+  transition:all .3s ease;
+}
+.word-input:focus{
+  outline:none;
+  background:rgba(255,255,255,.08);
+  border-color:var(--gold-light);
+  box-shadow:0 0 12px rgba(242,216,143,.3);
+}
+.word-input::placeholder{
+  color:rgba(255,255,255,.4);
+}
+
+/* ---------- AUTUMN STAGE: RIDDLE ---------- */
+#stage-autumn{
+  background:radial-gradient(circle at 50% 20%, rgba(212,168,71,.25), transparent 60%),
+             linear-gradient(170deg,#3a2412,#1a0f17 65%);
+}
+.riddle-container{
+  max-width:480px;
+  margin:30px auto;
+}
+.riddle-text{
+  font-family:var(--font-body);
+  font-style:italic;
+  font-size:1.3rem;
+  line-height:1.8;
+  color:rgba(255,255,255,.95);
+  text-align:center;
+  margin-bottom:32px;
+  padding:20px;
+  background:linear-gradient(135deg,rgba(212,168,71,.1),rgba(255,63,164,.08));
+  border-radius:12px;
+  border-left:3px solid var(--gold-light);
+}
+.riddle-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.riddle-btn{
+  background:linear-gradient(135deg,rgba(212,168,71,.15),rgba(255,63,164,.1));
+  border:1.5px solid rgba(212,168,71,.3);
+  border-radius:10px;
+  padding:16px 12px;
+  color:rgba(255,255,255,.9);
+  font-family:var(--font-ui);
+  font-weight:600;
+  font-size:.9rem;
+  cursor:pointer;
+  transition:all .3s ease;
+  text-align:center;
+}
+.riddle-btn:hover{
+  background:linear-gradient(135deg,rgba(212,168,71,.25),rgba(255,63,164,.15));
+  border-color:rgba(212,168,71,.6);
+  transform:translateY(-2px);
+}
+.riddle-btn.correct{
+  background:linear-gradient(135deg,var(--gold-light),var(--gold));
+  border-color:var(--gold);
+  color:var(--ink);
+  box-shadow:0 12px 24px rgba(212,168,71,.4);
+}
+.riddle-btn.incorrect{
+  background:rgba(200,50,50,.3);
+  border-color:rgba(200,50,50,.6);
+  opacity:.5;
+}
+
+/* ---------- ROME STAGE: STORY CHOICE ---------- */
+#stage-rome{
+  background:radial-gradient(circle at 50% 20%, rgba(255,63,164,.25), transparent 60%),
+             linear-gradient(170deg,#241018,#160c12 65%);
+}
+.story-container{
+  max-width:500px;
+  margin:30px auto;
+}
+.story-question{
+  font-family:var(--font-body);
+  font-size:1.25rem;
+  font-style:italic;
+  text-align:center;
+  color:rgba(255,255,255,.95);
+  margin-bottom:24px;
+  padding:16px;
+}
+.story-options{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+}
+.story-btn{
+  background:linear-gradient(135deg,rgba(255,63,164,.15),rgba(201,166,255,.12));
+  border:1.5px solid rgba(255,63,164,.3);
+  border-radius:12px;
+  padding:16px 18px;
+  color:rgba(255,255,255,.95);
+  font-family:var(--font-ui);
+  font-weight:600;
+  font-size:.95rem;
+  text-align:left;
+  cursor:pointer;
+  transition:all .3s ease;
+  position:relative;
+  overflow:hidden;
+}
+.story-btn::before{
+  content:'';
+  position:absolute;
+  left:-100%;
+  top:0;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  transition:left .5s ease;
+}
+.story-btn:hover{
+  background:linear-gradient(135deg,rgba(255,63,164,.25),rgba(201,166,255,.18));
+  border-color:rgba(255,63,164,.6);
+  transform:translateX(4px);
+}
+.story-btn:hover::before{
+  left:100%;
+}
+.story-btn.selected{
+  background:linear-gradient(135deg,var(--hot-pink),var(--lilac));
+  border-color:var(--gold-light);
+  color:var(--ink);
+  box-shadow:0 12px 24px rgba(255,63,164,.4);
+}
+
+/* ---------- FEEDBACK MESSAGE ---------- */
+.feedback{
+  text-align:center;
+  margin-top:16px;
+  min-height:1.5em;
+  font-weight:600;
+  font-size:.95rem;
+  animation:feedbackPop .4s ease;
+}
+.feedback.success{
+  color:var(--gold-light);
+}
+.feedback.error{
+  color:#ff6b9d;
+}
+@keyframes feedbackPop{
+  0%{opacity:0;transform:scale(.8);}
+  100%{opacity:1;transform:scale(1);}
+}
+
+
+#stage-final{
+  background:radial-gradient(circle at 50% 20%, rgba(255,63,164,.25), transparent 60%),
+             linear-gradient(170deg,#241018,#160c12 65%);
+  overflow-y:auto;
+  padding-top:70px;
+}
+.envelope-wrap{cursor:pointer;}
+.envelope{
+  position:relative;width:240px;height:156px;margin:10px auto 0;
+  transition:opacity .6s ease, transform .6s ease;
+}
+.envelope.hidden{opacity:0;transform:scale(.85);pointer-events:none;}
+.env-body{
+  position:absolute;inset:0;border-radius:6px;
+  background:linear-gradient(160deg,#FFD6EC,var(--cream));
+  box-shadow:0 14px 34px rgba(0,0,0,.35);
+}
+.env-flap{
+  position:absolute;top:0;left:0;width:100%;height:50%;
+  background:linear-gradient(160deg,var(--hot-pink),var(--lilac));
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  transform-origin:top;
+  transition:transform .9s cubic-bezier(.4,0,.2,1);
+  z-index:2;
+}
+.envelope.open .env-flap{transform:rotateX(180deg);}
+.seal{
+  position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);
+  width:36px;height:36px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  z-index:3;box-shadow:0 3px 8px rgba(0,0,0,.35);
+}
+.letter-card{
+  max-width:540px;width:100%;margin:18px auto 60px;
+  background:var(--cream);border:1px solid var(--gold-light);
+  border-radius:14px;
+  padding:clamp(26px,6vw,52px);
+  box-shadow:0 24px 60px rgba(0,0,0,.4);
+  text-align:left;
+  opacity:0;transform:translateY(26px);
+  transition:opacity .9s ease, transform .9s ease;
+}
+.letter-card.show{opacity:1;transform:translateY(0);}
+.letter-card h2{
+  font-family:var(--font-display);
+  font-size:clamp(2.3rem,7vw,3.1rem);
+  color:var(--deep-pink);
+  margin-bottom:4px;
+}
+.letter-card .letter-kicker{
+  font-family:var(--font-ui);font-size:.75rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:18px;
+}
+.letter-text p{
+  font-family:var(--font-body);font-style:italic;
+  font-size:clamp(1.08rem,2.4vw,1.28rem);
+  line-height:1.75;color:var(--ink);margin-bottom:1rem;
+}
+.placeholder-note{
+  border:1.5px dashed var(--lilac);padding:16px;border-radius:10px;
+  color:#8a7a85;font-style:normal !important;background:rgba(201,166,255,.06);
+}
+.letter-final-count{
+  margin-top:24px;padding-top:18px;border-top:1px dashed var(--gold-light);
+  font-family:var(--font-ui);font-weight:600;font-size:.85rem;
+  color:var(--deep-pink);text-align:center;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:480px){
+  .stage{padding:80px 18px 90px;}
+  .fountain-wrap{transform:scale(.85);}
+  #countdown-chip{font-size:.68rem;padding:6px 12px;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="ambient"></canvas>
+
+<div id="countdown-chip">🌸 <span id="chip-text">loading…</span></div>
+<button id="mute-btn" aria-label="toggle sound">🔊</button>
+<div id="progress-dots">
+  <div class="dot" data-stage="pink"></div>
+  <div class="dot" data-stage="lily"></div>
+  <div class="dot" data-stage="winx"></div>
+  <div class="dot" data-stage="autumn"></div>
+  <div class="dot" data-stage="rome"></div>
+</div>
+
+<!-- ================= LANDING ================= -->
+<section class="stage active" id="stage-landing">
+  <div class="stage-content">
+    <div class="eyebrow">a little quest</div>
+    <h1 class="landing-name" id="landing-name">for Munchi Panchi</h1>
+    <p class="landing-sub">five small magics, then a letter</p>
+    <p class="landing-count" id="landing-countdown">loading…</p>
+    <button class="begin-btn" id="begin-btn">begin ✨</button>
+  </div>
+</section>
+
+<!-- ================= STAGE 1: DOWNTOWN VIBES - MCQ ================= -->
+<section class="stage" id="stage-pink">
+  <div class="stage-content">
+    <div class="eyebrow">downtown aesthetic</div>
+    <h2 class="stage-title">Pick a Vibe</h2>
+    <p class="stage-sub">which matches your 2000s energy?</p>
+    <div class="quiz-container">
+      <div class="quiz-options">
+        <button class="quiz-btn" data-answer="a">
+          <span class="quiz-label">A</span>
+          <span class="quiz-text">Vintage coffee shop journals</span>
+        </button>
+        <button class="quiz-btn" data-answer="b">
+          <span class="quiz-label">B</span>
+          <span class="quiz-text">Late night city walks</span>
+        </button>
+        <button class="quiz-btn" data-answer="c">
+          <span class="quiz-label">C</span>
+          <span class="quiz-text">Y2K maximalist chaos</span>
+        </button>
+        <button class="quiz-btn" data-answer="d">
+          <span class="quiz-label">D</span>
+          <span class="quiz-text">Thrifted indie boutiques</span>
+        </button>
+      </div>
+    </div>
+    <div id="pink-feedback" class="feedback"></div>
+    <div><button class="continue-btn" id="pink-continue">continue →</button></div>
+  </div>
+</section>
+
+<!-- ================= STAGE 2: Y2K NOSTALGIA - PUZZLE ================= -->
+<section class="stage" id="stage-lily">
+  <div class="stage-content">
+    <div class="eyebrow">2000s nostalgia</div>
+    <h2 class="stage-title">Timeline Mystery</h2>
+    <p class="stage-sub">arrange these icons in order</p>
+    <div class="puzzle-container">
+      <div class="timeline-grid" id="timeline-puzzle">
+        <div class="puzzle-item draggable" data-order="3">iPod Classic</div>
+        <div class="puzzle-item draggable" data-order="1">Flip phones</div>
+        <div class="puzzle-item draggable" data-order="2">Low-rise jeans</div>
+        <div class="puzzle-item draggable" data-order="4">Scene haircuts</div>
+      </div>
+      <div id="timeline-correct" class="correct-msg"></div>
+    </div>
+    <div><button class="continue-btn" id="lily-continue">next →</button></div>
+  </div>
+</section>
+
+<!-- ================= STAGE 3: WHIMSY WORD PUZZLE ================= -->
+<section class="stage" id="stage-winx">
+  <div class="stage-content">
+    <div class="eyebrow">whimsical challenge</div>
+    <h2 class="stage-title">Word Scramble</h2>
+    <p class="stage-sub">unscramble the hidden message</p>
+    <div class="word-puzzle">
+      <div class="scrambled-word" id="scrambled">LAMGIC</div>
+      <input type="text" id="word-input" class="word-input" placeholder="type answer..." autocomplete="off">
+      <div id="word-feedback" class="feedback"></div>
+    </div>
+    <div><button class="continue-btn" id="winx-continue">onward →</button></div>
+  </div>
+</section>
+
+<!-- ================= STAGE 4: SLYTHERIN RIDDLE ================= -->
+<section class="stage" id="stage-autumn">
+  <div class="stage-content">
+    <div class="eyebrow">slytherin's choice</div>
+    <h2 class="stage-title">Riddle Me This</h2>
+    <p class="stage-sub">which house mystery do you solve?</p>
+    <div class="riddle-container">
+      <div class="riddle-text">I am not alive, but I grow. I don't have lungs, but I need air. I don't have a mouth, but water kills me. What am I?</div>
+      <div class="riddle-options">
+        <button class="riddle-btn" data-correct="true">Fire ✨</button>
+        <button class="riddle-btn" data-correct="false">Cloud ☁️</button>
+        <button class="riddle-btn" data-correct="false">Shadow 🌑</button>
+        <button class="riddle-btn" data-correct="false">Echo 📢</button>
+      </div>
+      <div id="riddle-feedback" class="feedback"></div>
+    </div>
+    <div><button class="continue-btn" id="autumn-continue">next →</button></div>
+  </div>
+</section>
+
+<!-- ================= STAGE 5: ROMCOM CHOICE ================= -->
+<section class="stage" id="stage-rome">
+  <div class="stage-content">
+    <div class="eyebrow">romantic moment</div>
+    <h2 class="stage-title">Choose Your Story</h2>
+    <p class="stage-sub">what's your romcom move?</p>
+    <div class="story-container">
+      <div class="story-question">You're at a cozy café. Your person needs advice. You:</div>
+      <div class="story-options">
+        <button class="story-btn" data-choice="listen">Listen deeply & remember every detail 👂</button>
+        <button class="story-btn" data-choice="solution">Solve it with witty wisdom 💡</button>
+        <button class="story-btn" data-choice="presence">Just sit together in silence 🤍</button>
+        <button class="story-btn" data-choice="laugh">Make them laugh through it 😊</button>
+      </div>
+      <div id="story-feedback" class="feedback"></div>
+    </div>
+    <div><button class="continue-btn" id="rome-continue">reach the letter →</button></div>
+  </div>
+</section>
+
+<!-- ================= FINAL / LETTER ================= -->
+<section class="stage" id="stage-final">
+  <div class="stage-content" style="max-width:600px;">
+    <div class="eyebrow">the last stop</div>
+    <h2 class="stage-title" style="font-size:clamp(2.6rem,8vw,4rem);">For You</h2>
+    <p class="stage-sub">open whenever you're ready</p>
+
+    <div class="envelope-wrap" id="envelope-wrap">
+      <div class="envelope" id="envelope">
+        <div class="env-body"></div>
+        <div class="env-flap"></div>
+        <div class="seal">🌸</div>
+      </div>
+    </div>
+
+    <div class="letter-card" id="letter-card">
+      <div class="letter-kicker">happy birthday</div>
+      <h2 id="letter-heading">My Munchi Panchi,</h2>
+      <div class="letter-text">
+        <!-- ============================================================= -->
+        <!--  ✏️  PAVARA — REPLACE THIS WHOLE BLOCK WITH YOUR OWN LETTER.   -->
+        <!--  Just keep using <p>...</p> for each paragraph. Delete the     -->
+        <!--  placeholder line below once you've added your real text.     -->
+        <!-- ============================================================= -->
+        <p class="placeholder-note">[ Your words go here. Replace this paragraph (and add as many &lt;p&gt; paragraphs as you want) with your actual letter. She'll never know AI touched anything but the confetti. ]</p>
+      </div>
+      <div class="letter-final-count" id="letter-countdown">loading…</div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ============================================================
+   CONFIG — edit these two lines if anything changes
+   ============================================================ */
+const CONFIG = {
+  herName: "Munchi Panchi",
+  birthdayMonth: 6,   // June
+  birthdayDay: 28
+};
+document.getElementById('landing-name').textContent = "for " + CONFIG.herName;
+document.getElementById('letter-heading').textContent = "My " + CONFIG.herName + ",";
+
+/* ============================================================
+   COUNTDOWN
+   ============================================================ */
+function nextBirthday(){
+  const now = new Date();
+  let year = now.getFullYear();
+  let target = new Date(year, CONFIG.birthdayMonth - 1, CONFIG.birthdayDay, 0,0,0,0);
+  if (target < now) target = new Date(year + 1, CONFIG.birthdayMonth - 1, CONFIG.birthdayDay);
+  return target;
+}
+function formatCountdown(){
+  const target = nextBirthday();
+  const now = new Date();
+  let diff = Math.max(0, target - now);
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor(diff%86400000/3600000);
+  const m = Math.floor(diff%3600000/60000);
+  const s = Math.floor(diff%60000/1000);
+  if (diff <= 0) return "it's your birthday 🎂";
+  return `<span class="num">${d}</span>d <span class="num">${h}</span>h <span class="num">${m}</span>m <span class="num">${s}</span>s until your birthday`;
+}
+function updateCountdown(){
+  const text = formatCountdown();
+  document.getElementById('chip-text').innerHTML = text;
+  document.getElementById('landing-countdown').innerHTML = text;
+  document.getElementById('letter-countdown').innerHTML = "🎂 " + text;
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+/* ============================================================
+   AUDIO — procedural chimes, no external files
+   ============================================================ */
+let audioCtx;
+let muted = false;
+function ensureAudio(){
+  if (!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playChime(freqs, dur){
+  if (muted) return;
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  freqs.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const start = now + i * 0.07;
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(0.16, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(start);
+    osc.stop(start + dur + 0.05);
+  });
+}
+const CHIMES = {
+  sparkle: [660, 880, 1320],
+  bloom:   [523, 659, 784, 988],
+  magic:   [784, 988, 1175, 1568],
+  leaf:    [440, 554, 659],
+  splash:  [392, 330, 494],
+  open:    [523, 659, 784, 1046, 1318]
+};
+document.getElementById('mute-btn').addEventListener('click', function(){
+  muted = !muted;
+  this.textContent = muted ? '🔇' : '🔊';
+  if (!muted) ensureAudio();
+});
+
+/* ============================================================
+   AMBIENT PARTICLE SYSTEM (canvas)
+   ============================================================ */
+const canvas = document.getElementById('ambient');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize(){ W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize();
+addEventListener('resize', resize);
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const THEMES = {
+  landing: { shapes:['sparkle','heart','star'], colors:['#FF3FA4','#C9A6FF','#F2D88F'], dir:'up',   rate:reducedMotion?0.06:0.35 },
+  pink:    { shapes:['heart','sparkle'],        colors:['#FF3FA4','#FF8FC7','#FFD6EC'], dir:'up',   rate:reducedMotion?0.06:0.45 },
+  lily:    { shapes:['petal'],                  colors:['#E8DBFF','#C9A6FF','#FFFFFF'], dir:'down', rate:reducedMotion?0.05:0.3 },
+  winx:    { shapes:['star','sparkle'],         colors:['#C9A6FF','#FF3FA4','#F2D88F'], dir:'up',   rate:reducedMotion?0.06:0.5 },
+  autumn:  { shapes:['leafp'],                  colors:['#C8682E','#D4A847','#EFA15C'], dir:'down', rate:reducedMotion?0.05:0.35 },
+  rome:    { shapes:['sparkle'],                colors:['#D4A847','#F2D88F'],           dir:'up',   rate:reducedMotion?0.04:0.25 },
+  final:   { shapes:['heart','sparkle','petal'],colors:['#FF3FA4','#C9A6FF','#F2D88F'], dir:'up',   rate:reducedMotion?0.05:0.3 }
+};
+let currentTheme = THEMES.landing;
+let particles = [];
+const MAX_PARTICLES = 140;
+
+function rand(a,b){ return a + Math.random()*(b-a); }
+
+function spawnParticle(theme, x, y, burstVel){
+  const shape = theme.shapes[Math.floor(Math.random()*theme.shapes.length)];
+  const color = theme.colors[Math.floor(Math.random()*theme.colors.length)];
+  const size = rand(6,16);
+  let vx, vy;
+  if (burstVel){
+    const ang = rand(0, Math.PI*2);
+    const speed = rand(1.5,4.5);
+    vx = Math.cos(ang)*speed;
+    vy = Math.sin(ang)*speed;
+  } else {
+    vx = rand(-0.3,0.3);
+    vy = theme.dir === 'up' ? rand(-1.2,-0.4) : rand(0.4,1.2);
+  }
+  particles.push({
+    x: x !== undefined ? x : rand(0,W),
+    y: y !== undefined ? y : (theme.dir==='up' ? H+20 : -20),
+    vx, vy, size, color, shape,
+    rot: rand(0,Math.PI*2),
+    vrot: rand(-0.05,0.05),
+    life: 0,
+    maxLife: rand(220,420),
+    opacity: 1
+  });
+  if (particles.length > MAX_PARTICLES) particles.shift();
+}
+
+function drawShape(p){
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rot);
+  ctx.globalAlpha = p.opacity;
+  ctx.fillStyle = p.color;
+  const s = p.size;
+  if (p.shape === 'heart'){
+    ctx.beginPath();
+    ctx.moveTo(0, s*0.3);
+    ctx.bezierCurveTo(-s, -s*0.4, -s*0.5, -s, 0, -s*0.2);
+    ctx.bezierCurveTo(s*0.5, -s, s, -s*0.4, 0, s*0.3);
+    ctx.fill();
+  } else if (p.shape === 'star' || p.shape === 'sparkle'){
+    ctx.beginPath();
+    for (let i=0;i<4;i++){
+      const a = (Math.PI/2)*i;
+      ctx.lineTo(Math.cos(a)*s, Math.sin(a)*s);
+      ctx.lineTo(Math.cos(a+Math.PI/4)*s*0.3, Math.sin(a+Math.PI/4)*s*0.3);
+    }
+    ctx.closePath();
+    ctx.fill();
+  } else if (p.shape === 'petal'){
+    ctx.beginPath();
+    ctx.ellipse(0,0, s*0.5, s, 0, 0, Math.PI*2);
+    ctx.fill();
+  } else if (p.shape === 'leafp'){
+    ctx.beginPath();
+    ctx.moveTo(0,-s);
+    ctx.quadraticCurveTo(s,0,0,s);
+    ctx.quadraticCurveTo(-s,0,0,-s);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+let spawnAcc = 0;
+function tick(){
+  ctx.clearRect(0,0,W,H);
+  spawnAcc += currentTheme.rate;
+  while (spawnAcc >= 1){
+    spawnParticle(currentTheme);
+    spawnAcc -= 1;
+  }
+  particles.forEach(p=>{
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rot += p.vrot;
+    p.life++;
+    const lifeRatio = p.life / p.maxLife;
+    p.opacity = lifeRatio < 0.15 ? lifeRatio/0.15 : (1 - Math.max(0,(lifeRatio-0.7)/0.3));
+    drawShape(p);
+  });
+  particles = particles.filter(p => p.life < p.maxLife && p.y > -40 && p.y < H+40);
+  requestAnimationFrame(tick);
+}
+tick();
+
+function burst(theme, x, y, count){
+  for (let i=0;i<count;i++) spawnParticle(theme, x, y, true);
+}
+
+/* ============================================================
+   STAGE NAVIGATION & COMBO SYSTEM
+   ============================================================ */
+const ORDER = ['landing','pink','lily','winx','autumn','rome','final'];
+const JOURNEY = ['pink','lily','winx','autumn','rome'];
+
+const comboState = {
+  pink: 0, lily: 0, winx: 0, autumn: 0, rome: 0
+};
+
+const COMBO_THRESHOLDS = [5, 10, 15, 20, 25, 30];
+
+function setActiveDot(name){
+  document.querySelectorAll('#progress-dots .dot').forEach(dot=>{
+    const idx = JOURNEY.indexOf(dot.dataset.stage);
+    const curIdx = JOURNEY.indexOf(name);
+    dot.classList.toggle('filled', idx <= curIdx && curIdx !== -1);
+  });
+}
+
+function updateComboDisplay(stage, count){
+  const el = document.getElementById(`${stage}-combo`);
+  if (el){
+    if (count > 0){
+      el.classList.add('active');
+      const threshold = COMBO_THRESHOLDS[COMBO_THRESHOLDS.length - 1] || 30;
+      const fillPercent = Math.min((count / 10) * 100, 100);
+      el.innerHTML = `
+        <div class="combo-label">combo</div>
+        <div class="combo-count">${count}</div>
+        <div class="combo-bar">
+          <div class="combo-bar-fill" style="width: ${fillPercent}%"></div>
+        </div>
+      `;
+    } else {
+      el.classList.remove('active');
+    }
+  }
+}
+
+function triggerMilestone(count){
+  const messages = ['on fire! 🔥', 'unstoppable! ⚡', 'legend! 👑', 'incredible! ✨', 'AMAZING! 💫'];
+  const idx = Math.floor((count - COMBO_THRESHOLDS[0]) / 5);
+  const msg = messages[Math.min(idx, messages.length - 1)];
+  
+  const milestone = document.createElement('div');
+  milestone.className = 'combo-milestone';
+  milestone.textContent = msg;
+  document.body.appendChild(milestone);
+  
+  setTimeout(() => milestone.remove(), 800);
+}
+
+function goToStage(name){
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
+  document.getElementById('stage-' + name).classList.add('active');
+  currentTheme = THEMES[name] || THEMES.landing;
+  setActiveDot(name);
+}
+
+function revealContinue(id){
+  document.getElementById(id).classList.add('revealed');
+}
+
+// Advanced interaction helpers
+function createTrailEffect(x, y, color, size = 8) {
+  const trail = document.createElement('div');
+  trail.style.position = 'fixed';
+  trail.style.left = x + 'px';
+  trail.style.top = y + 'px';
+  trail.style.width = size + 'px';
+  trail.style.height = size + 'px';
+  trail.style.background = color;
+  trail.style.borderRadius = '50%';
+  trail.style.pointerEvents = 'none';
+  trail.style.zIndex = '25';
+  trail.style.animation = 'fadeOut .6s ease-out forwards';
+  trail.style.boxShadow = `0 0 12px ${color}`;
+  document.body.appendChild(trail);
+  setTimeout(() => trail.remove(), 600);
+}
+
+function createPulseRing(x, y, color) {
+  const ring = document.createElement('div');
+  ring.style.position = 'fixed';
+  ring.style.left = x + 'px';
+  ring.style.top = y + 'px';
+  ring.style.width = '40px';
+  ring.style.height = '40px';
+  ring.style.border = `2px solid ${color}`;
+  ring.style.borderRadius = '50%';
+  ring.style.pointerEvents = 'none';
+  ring.style.zIndex = '24';
+  ring.style.transform = 'translate(-50%, -50%)';
+  ring.style.animation = 'pulseRing .8s ease-out forwards';
+  document.body.appendChild(ring);
+  setTimeout(() => ring.remove(), 800);
+}
+
+// Add keyframe animations
+const style = document.createElement('style');
+style.innerHTML = `
+  @keyframes fadeOut {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0); }
+  }
+  @keyframes pulseRing {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+
+/* ---- landing ---- */
+document.getElementById('begin-btn').addEventListener('click', () => {
+  ensureAudio();
+  playChime(CHIMES.sparkle, 0.5);
+  goToStage('pink');
+});
+
+/* ---- pink stage (enhanced) ---- */
+let pinkDone = false;
+let pinkDragging = false;
+let pinkLastX = 0, pinkLastY = 0;
+
+/* ============================================================
+   STAGE INTERACTIONS (NEW: Puzzles & MCQ)
+   ============================================================ */
+
+/* ---- PINK STAGE: QUIZ MCQ ---- */
+let pinkSelected = null;
+const quizBtns = document.querySelectorAll('.quiz-btn');
+quizBtns.forEach(btn => {
+  btn.addEventListener('click', function(){
+    if (pinkSelected) pinkSelected.classList.remove('selected');
+    pinkSelected = this;
+    this.classList.add('selected');
+    playChime(CHIMES.sparkle, 0.4);
+    createPulseRing(window.innerWidth/2, window.innerHeight/2, 'rgba(255,63,164,.8)');
+    revealContinue('pink-continue');
+  });
+});
+document.getElementById('pink-continue').addEventListener('click', ()=> goToStage('lily'));
+
+/* ---- LILY STAGE: PUZZLE (Drag-Drop Timeline) ---- */
+let lilySelected = null;
+let puzzleItems = [];
+function makePuzzleItemsDraggable() {
+  puzzleItems = Array.from(document.querySelectorAll('.puzzle-item'));
+  puzzleItems.forEach(item => {
+    item.draggable = true;
+    item.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.target.classList.add('dragging');
+    });
+    item.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+    });
+  });
+}
+const grid = document.querySelector('.timeline-grid');
+if (grid) {
+  grid.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
+  grid.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const dragging = document.querySelector('.puzzle-item.dragging');
+    if (!dragging) return;
+    
+    const allItems = Array.from(grid.querySelectorAll('.puzzle-item'));
+    const dragIndex = allItems.indexOf(dragging);
+    const overIndex = allItems.indexOf(e.target.closest('.puzzle-item'));
+    
+    if (overIndex >= 0 && dragIndex !== overIndex) {
+      if (dragIndex < overIndex) {
+        allItems[overIndex].parentNode.insertBefore(dragging, allItems[overIndex].nextSibling);
+      } else {
+        allItems[overIndex].parentNode.insertBefore(dragging, allItems[overIndex]);
+      }
+    }
+    
+    checkPuzzleOrder();
+  });
+}
+
+function checkPuzzleOrder() {
+  const items = Array.from(document.querySelectorAll('.puzzle-item'));
+  let isCorrect = true;
+  items.forEach((item, idx) => {
+    const expected = idx + 1;
+    const actual = parseInt(item.getAttribute('data-order')) || 0;
+    if (actual !== expected) isCorrect = false;
+  });
+  
+  if (isCorrect) {
+    items.forEach(item => item.classList.add('correct'));
+    playChime(CHIMES.bloom, 0.6);
+    const correctMsg = document.querySelector('.correct-msg');
+    if (correctMsg) correctMsg.textContent = '✨ Perfect order! You\'re a timeline master!';
+    setTimeout(()=>revealContinue('lily-continue'), 600);
+  }
+}
+makePuzzleItemsDraggable();
+document.getElementById('lily-continue').addEventListener('click', ()=> goToStage('winx'));
+
+/* ---- WINX STAGE: WORD PUZZLE ---- */
+const wordInput = document.getElementById('word-input');
+if (wordInput) {
+  wordInput.addEventListener('keyup', (e) => {
+    const input = e.target.value.toLowerCase().trim();
+    if (input === 'magical') {
+      e.target.disabled = true;
+      playChime(CHIMES.magic, 0.55);
+      const feedback = document.getElementById('word-feedback');
+      if (feedback) {
+        feedback.textContent = '✨ Magical! You\'ve unlocked the spell!';
+        feedback.classList.add('success');
+      }
+      setTimeout(()=>revealContinue('winx-continue'), 400);
+    }
+  });
+}
+document.getElementById('winx-continue').addEventListener('click', ()=> goToStage('autumn'));
+
+/* ---- AUTUMN STAGE: RIDDLE ---- */
+let riddleAnswered = false;
+const riddleBtns = document.querySelectorAll('.riddle-btn');
+riddleBtns.forEach(btn => {
+  btn.addEventListener('click', function(){
+    if (riddleAnswered) return;
+    riddleAnswered = true;
+    
+    const isCorrect = this.getAttribute('data-correct') === 'true';
+    if (isCorrect) {
+      this.classList.add('correct');
+      playChime(CHIMES.bloom, 0.6);
+      const feedback = document.getElementById('riddle-feedback');
+      if (feedback) {
+        feedback.textContent = '🔥 Correct! The answer is fire—burning bright like Slytherin pride!';
+        feedback.classList.add('success');
+      }
+      setTimeout(()=>revealContinue('autumn-continue'), 600);
+    } else {
+      this.classList.add('incorrect');
+      riddleBtns.forEach(b => {
+        if (b.getAttribute('data-correct') === 'true') {
+          b.classList.add('correct');
+        } else if (b !== this) {
+          b.classList.add('incorrect');
+        }
+      });
+      playChime(CHIMES.sparkle, 0.3);
+      const feedback = document.getElementById('riddle-feedback');
+      if (feedback) {
+        feedback.textContent = 'Not quite... think about what burns bright!';
+        feedback.classList.add('error');
+      }
+      setTimeout(()=>revealContinue('autumn-continue'), 1000);
+    }
+  });
+});
+document.getElementById('autumn-continue').addEventListener('click', ()=> goToStage('rome'));
+
+/* ---- ROME STAGE: STORY CHOICE ---- */
+let romeSelected = null;
+const storyBtns = document.querySelectorAll('.story-btn');
+storyBtns.forEach(btn => {
+  btn.addEventListener('click', function(){
+    if (romeSelected) romeSelected.classList.remove('selected');
+    romeSelected = this;
+    this.classList.add('selected');
+    playChime(CHIMES.sparkle, 0.4);
+    createPulseRing(window.innerWidth/2, window.innerHeight/2, 'rgba(255,63,164,.8)');
+    revealContinue('rome-continue');
+  });
+});
+document.getElementById('rome-continue').addEventListener('click', ()=> goToStage('final'));
+
+/* ---- final stage: envelope + letter ---- */
+document.getElementById('envelope-wrap').addEventListener('click', function(){
+  const env = document.getElementById('envelope');
+  if (env.classList.contains('open')) return;
+  env.classList.add('open');
+  playChime(CHIMES.open, 0.9);
+  setTimeout(()=>{
+    env.classList.add('hidden');
+    document.getElementById('letter-card').classList.add('show');
+    burst(THEMES.final,
+      window.innerWidth/2,
+      window.innerHeight/2,
+      reducedMotion ? 10 : 36
+    );
+  }, 900);
+});
+</script>
+</body>
+</html>
