@@ -35,7 +35,7 @@
 }
 
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+html,body{margin:0;padding:0;block-size:100%;overflow:hidden;}
 body{
   font-family:var(--font-ui);
   color:var(--ink);
@@ -53,8 +53,8 @@ p{margin:0;}
 #ambient{
   position:fixed;
   inset:0;
-  width:100%;
-  height:100%;
+  inline-size:100%;
+  block-size:100%;
   z-index:1;
   pointer-events:none;
 }
@@ -62,8 +62,8 @@ p{margin:0;}
 /* ---------- persistent UI chrome ---------- */
 #countdown-chip{
   position:fixed;
-  top:18px;
-  left:50%;
+  inset-block-start:18px;
+  inset-inline-start:50%;
   transform:translateX(-50%);
   z-index:50;
   background:rgba(58,26,46,.55);
@@ -83,11 +83,11 @@ p{margin:0;}
 
 #mute-btn{
   position:fixed;
-  bottom:18px;
-  right:18px;
+  inset-block-end:18px;
+  inset-inline-end:18px;
   z-index:50;
-  width:42px;
-  height:42px;
+  inline-size:42px;
+  block-size:42px;
   border-radius:50%;
   background:rgba(58,26,46,.55);
   border:1px solid rgba(255,255,255,.25);
@@ -112,15 +112,15 @@ p{margin:0;}
 
 #progress-dots{
   position:fixed;
-  bottom:18px;
-  left:50%;
+  inset-block-end:18px;
+  inset-inline-start:50%;
   transform:translateX(-50%);
   z-index:50;
   display:flex;
   gap:8px;
 }
 #progress-dots .dot{
-  width:7px;height:7px;border-radius:50%;
+  inline-size:7px;block-size:7px;border-radius:50%;
   background:rgba(255,255,255,.3);
   transition:background .4s ease, transform .4s ease;
 }
@@ -141,8 +141,8 @@ p{margin:0;}
 }
 .stage.active{opacity:1;pointer-events:auto;}
 .stage-content{
-  max-width:560px;
-  width:100%;
+  max-inline-size:560px;
+  inline-size:100%;
   text-align:center;
   transform:translateY(18px);
   opacity:0;
@@ -156,28 +156,28 @@ p{margin:0;}
   letter-spacing:.25em;
   text-transform:uppercase;
   opacity:.7;
-  margin-bottom:10px;
+  margin-block-end:10px;
   color:rgba(255,255,255,.65);
 }
 .stage-title{
   font-family:var(--font-display);
   font-size:clamp(3rem,10vw,5.2rem);
   line-height:1;
-  margin-bottom:14px;
+  margin-block-end:14px;
 }
 .stage-sub{
   font-family:var(--font-body);
   font-style:italic;
   font-size:clamp(1.05rem,2.6vw,1.3rem);
   opacity:.9;
-  margin-bottom:34px;
+  margin-block-end:34px;
   color:var(--cream);
 }
 
 
 
 .stage-progress{
-  position:absolute;top:20px;right:20px;
+  position:absolute;inset-block-start:20px;inset-inline-end:20px;
   font-size:.8rem;
   color:rgba(255,255,255,.5);
   font-family:var(--font-ui);
@@ -186,7 +186,7 @@ p{margin:0;}
 }
 
 .continue-btn{
-  margin-top:38px;
+  margin-block-start:38px;
   font-family:var(--font-ui);
   font-weight:700;
   font-size:.95rem;
@@ -271,13 +271,13 @@ p{margin:0;}
   display:flex;
   justify-content:center;
   gap:6px;
-  margin-bottom:0;
+  margin-block-end:0;
   align-items:flex-end;
-  height:50px;
+  block-size:50px;
 }
 .candle{
-  width:8px;
-  height:32px;
+  inline-size:8px;
+  block-size:32px;
   background:linear-gradient(180deg,#FFD6EC,#FF3FA4);
   border-radius:4px 4px 2px 2px;
   position:relative;
@@ -286,11 +286,11 @@ p{margin:0;}
 }
 .candle .flame{
   position:absolute;
-  top:-16px;
-  left:50%;
+  inset-block-start:-16px;
+  inset-inline-start:50%;
   transform:translateX(-50%);
-  width:10px;
-  height:16px;
+  inline-size:10px;
+  block-size:16px;
   background:radial-gradient(#FFD700,#FF8C00);
   border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
   opacity:0;
@@ -301,7 +301,7 @@ p{margin:0;}
 .cake-body{
   font-size:4rem;
   line-height:1;
-  margin-top:-2px;
+  margin-block-start:-2px;
   filter:drop-shadow(0 8px 20px rgba(0,0,0,.4));
 }
 .cake-message{
@@ -309,8 +309,8 @@ p{margin:0;}
   font-style:italic;
   font-size:clamp(1.1rem,3vw,1.5rem);
   color:var(--gold-light);
-  min-height:2.2em;
-  margin-top:14px;
+  min-block-size:2.2em;
+  margin-block-start:14px;
   opacity:0;
   transition:opacity .6s ease;
 }
@@ -323,15 +323,15 @@ p{margin:0;}
   font-size:clamp(1.1rem,3vw,1.5rem);
   color:var(--cream);
   line-height:1.7;
-  min-height:4em;
-  margin-top:8px;
+  min-block-size:4em;
+  margin-block-start:8px;
 }
 .reveal-text .word{
   display:inline-block;
   opacity:0;
   transform:translateY(6px);
   animation:wordIn .4s ease forwards;
-  margin-right:.3em;
+  margin-inline-end:.3em;
 }
 .reveal-text .word:nth-child(odd){color:var(--baby-pink);}
 .reveal-text .word:nth-child(even){color:var(--lilac-light);}
@@ -356,21 +356,21 @@ p{margin:0;}
   background-clip:text;
   color:transparent;
   line-height:1.05;
-  margin-bottom:6px;
+  margin-block-end:6px;
 }
 .landing-sub{
   font-family:var(--font-body);
   font-style:italic;
   color:#f4e9f0;
   font-size:clamp(1.05rem,2.6vw,1.3rem);
-  margin-bottom:8px;
+  margin-block-end:8px;
 }
 .landing-count{
   font-family:var(--font-ui);
   font-weight:600;
   color:var(--gold-light);
   font-size:.9rem;
-  margin-bottom:36px;
+  margin-block-end:36px;
   letter-spacing:.03em;
 }
 
@@ -384,7 +384,7 @@ p{margin:0;}
 }
 .envelope-wrap{cursor:pointer;touch-action:manipulation;}
 .envelope{
-  position:relative;width:240px;height:156px;margin:10px auto 0;
+  position:relative;inline-size:240px;block-size:156px;margin:10px auto 0;
   transition:opacity .6s ease, transform .6s ease;
 }
 .envelope.hidden{opacity:0;transform:scale(.85);pointer-events:none;}
@@ -394,7 +394,7 @@ p{margin:0;}
   box-shadow:0 14px 34px rgba(0,0,0,.35);
 }
 .env-flap{
-  position:absolute;top:0;left:0;width:100%;height:50%;
+  position:absolute;inset-block-start:0;inset-inline-start:0;inline-size:100%;block-size:50%;
   background:linear-gradient(160deg,var(--hot-pink),var(--lilac));
   clip-path:polygon(0 0,100% 0,50% 100%);
   transform-origin:top;
@@ -403,18 +403,18 @@ p{margin:0;}
 }
 .envelope.open .env-flap{transform:rotateX(180deg);}
 .seal{
-  position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);
-  width:36px;height:36px;border-radius:50%;background:var(--gold);
+  position:absolute;inset-block-start:36%;inset-inline-start:50%;transform:translate(-50%,-50%);
+  inline-size:36px;block-size:36px;border-radius:50%;background:var(--gold);
   display:flex;align-items:center;justify-content:center;font-size:16px;
   z-index:3;box-shadow:0 3px 8px rgba(0,0,0,.35);
 }
 .letter-card{
-  max-width:540px;width:100%;margin:18px auto 60px;
+  max-inline-size:540px;inline-size:100%;margin:18px auto 60px;
   background:var(--cream);border:1px solid var(--gold-light);
   border-radius:14px;
   padding:clamp(26px,6vw,52px);
   box-shadow:0 24px 60px rgba(0,0,0,.4);
-  text-align:left;
+  text-align:start;
   opacity:0;transform:translateY(26px);
   transition:opacity .9s ease, transform .9s ease;
 }
@@ -423,16 +423,16 @@ p{margin:0;}
   font-family:var(--font-display);
   font-size:clamp(2.3rem,7vw,3.1rem);
   color:var(--deep-pink);
-  margin-bottom:4px;
+  margin-block-end:4px;
 }
 .letter-card .letter-kicker{
   font-family:var(--font-ui);font-size:.75rem;letter-spacing:.2em;
-  text-transform:uppercase;  color:var(--gold);margin-bottom:18px;
+  text-transform:uppercase;  color:var(--gold);margin-block-end:18px;
 }
 .letter-text p{
   font-family:var(--font-body);font-style:italic;
   font-size:clamp(1.08rem,2.4vw,1.28rem);
-  line-height:1.75;color:var(--ink);margin-bottom:1rem;
+  line-height:1.75;color:var(--ink);margin-block-end:1rem;
 }
 .placeholder-note{
   border:1.5px dashed var(--lilac);padding:16px;border-radius:10px;
@@ -443,12 +443,12 @@ p{margin:0;}
   font-style:normal;
   font-size:clamp(1.4rem,4vw,1.8rem);
   color:var(--deep-pink);
-  text-align:right;
-  margin-top:1.5rem;
-  margin-bottom:0;
+  text-align:end;
+  margin-block-start:1.5rem;
+  margin-block-end:0;
 }
 .letter-final-count{
-  margin-top:24px;padding-top:18px;border-top:1px dashed var(--gold-light);
+  margin-block-start:24px;padding-block-start:18px;border-block-start:1px dashed var(--gold-light);
   font-family:var(--font-ui);font-weight:600;font-size:.85rem;
   color:var(--deep-pink);text-align:center;
 }
@@ -530,7 +530,7 @@ p{margin:0;}
 
 <!-- ================= FINAL / LETTER ================= -->
 <section class="stage" id="stage-final" tabindex="0">
-  <div class="stage-content" style="max-width:600px;">
+  <div class="stage-content" style="max-inline-size:600px;">
     <div class="eyebrow">the last stop</div>
     <h2 class="stage-title" style="font-size:clamp(2.6rem,8vw,4rem);">For You</h2>
     <p class="stage-sub">open whenever you're ready</p>
