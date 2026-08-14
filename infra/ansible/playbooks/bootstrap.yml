@@ -1,0 +1,173 @@
+---
+# bootstrap.yml — one-time provisioning of the Oracle Linux VM.
+#
+# Run:  ansible-playbook playbooks/bootstrap.yml
+# Safe to re-run; all tasks are idempotent.
+
+- name: Bootstrap Munchi birthday VM
+  hosts: munchi_vm
+  become: true
+
+  tasks:
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+      register: dnf_update
+
+    - name: Install base packages
+      ansible.builtin.dnf:
+        name:
+          - docker
+          - docker-compose-plugin
+          - epel-release
+          - curl
+          - ufw
+          - fail2ban
+          - dnf-automatic
+        state: present
+
+    - name: Enable automatic security updates (dnf-automatic)
+      ansible.builtin.lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "^apply_updates"
+        line: "apply_updates = yes"
+
+    - name: Start dnf-automatic timer
+      ansible.builtin.systemd:
+        name: dnf-automatic-install.timer
+        enabled: true
+        state: started
+
+    - name: Enable and start docker
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add opc to docker group
+      ansible.builtin.user:
+        name: opc
+        groups: docker
+        append: true
+
+    # ---- firewall (UFW) ----
+    - name: Allow SSH
+      ansible.builtin.command: ufw allow {{ ssh_port }}/tcp
+      changed_when: false
+
+    - name: Allow HTTP
+      ansible.builtin.command: ufw allow 80/tcp
+      changed_when: false
+
+    - name: Allow HTTPS
+      ansible.builtin.command: ufw allow 443/tcp
+      changed_when: false
+
+    - name: Default deny incoming
+      ansible.builtin.command: ufw default deny incoming
+      changed_when: false
+
+    - name: Enable UFW (non-interactive)
+      ansible.builtin.command: ufw --force enable
+      changed_when: false
+
+    # ---- fail2ban (sshd) ----
+    - name: Configure fail2ban jail for sshd
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        content: |
+          [DEFAULT]
+          bantime = 600
+          findtime = 600
+          maxretry = 5
+
+          [sshd]
+          enabled = true
+          backend = systemd
+      notify: restart fail2ban
+
+    - name: Enable and start fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        enabled: true
+        state: started
+
+    # ---- SSH hardening ----
+    - name: Disable password authentication for SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^#?PasswordAuthentication"
+        line: "PasswordAuthentication no"
+      notify: restart sshd
+
+    - name: Disable root SSH login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^#?PermitRootLogin"
+        line: "PermitRootLogin no"
+      notify: restart sshd
+
+    # ---- application directory + first deploy ----
+    - name: Create app directory
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy docker-compose.yml
+      ansible.builtin.copy:
+        src: "../../../docker-compose.yml"
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Template .env
+      ansible.builtin.template:
+        src: "../templates/env.j2"
+        dest: "{{ app_dir }}/.env"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Pull app image
+      ansible.builtin.command:
+        cmd: "docker compose -f {{ app_dir }}/docker-compose.yml pull app"
+      environment:
+        APP_IMAGE: "{{ app_image }}"
+      register: pull_result
+      changed_when: "'Downloaded newer image' in pull_result.stdout or 'Pulled' in pull_result.stdout"
+
+    - name: Start app container
+      ansible.builtin.command:
+        cmd: "docker compose -f {{ app_dir }}/docker-compose.yml up -d --no-deps app"
+      environment:
+        APP_IMAGE: "{{ app_image }}"
+
+    - name: Wait for the site to be healthy
+      ansible.builtin.uri:
+        url: "http://127.0.0.1/"
+        status_code: 200
+        timeout: 10
+      register: result
+      until: result.status == 200
+      retries: 15
+      delay: 2
+
+    - name: Report deployment
+      ansible.builtin.debug:
+        msg: "Site is live. Point {{ domain }} at this VM's public IP, then TLS is handled automatically by Caddy."
+
+  handlers:
+    - name: restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted

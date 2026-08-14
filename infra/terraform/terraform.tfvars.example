@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and fill in real values.
+# tenancy_ocid + region + ssh_public_key are required.
+
+tenancy_ocid   = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+region         = "ap-mumbai-1"
+ssh_public_key = "ssh-ed25519 AAAA... your@email"
+
+# Optional: reuse an existing compartment instead of creating one
+# compartment_ocid = "ocid1.compartment.oc1..xxxx"
+
+# Optional: if the first availability domain is out of A1 capacity, bump this to 1 or 2
+# availability_domain_index = 1

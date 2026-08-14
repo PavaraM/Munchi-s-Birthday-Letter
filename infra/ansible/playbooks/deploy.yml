@@ -1,0 +1,55 @@
+---
+# deploy.yml — infra-managed deploy (alternative to scripts/deploy.sh).
+# CI/CD normally deploys over SSH; this playbook is a manual fallback.
+#
+# Run:  ansible-playbook playbooks/deploy.yml
+
+- name: Deploy Munchi birthday app
+  hosts: munchi_vm
+  become: true
+
+  vars:
+    app_dir: "{{ app_dir | default('/opt/munchi-birthday') }}"
+    app_image: "{{ app_image | default('ghcr.io/pavaram/munchi-birthday:latest') }}"
+
+  tasks:
+    - name: Tag current running image for rollback
+      ansible.builtin.shell: |
+        set -e
+        if docker ps -q --filter name=app | grep -q .; then
+          CUR=$(docker inspect --format '{{ '{{' }}.Image{{ '}}' }}' $(docker ps -q --filter name=app))
+          docker tag "$CUR" app:prev 2>/dev/null || true
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Pull app image
+      ansible.builtin.command:
+        cmd: "docker compose -f {{ app_dir }}/docker-compose.yml pull app"
+      environment:
+        APP_IMAGE: "{{ app_image }}"
+      register: pull_result
+      changed_when: "'Downloaded newer image' in pull_result.stdout or 'Pulled' in pull_result.stdout"
+
+    - name: Recreate app container
+      ansible.builtin.command:
+        cmd: "docker compose -f {{ app_dir }}/docker-compose.yml up -d --no-deps --force-recreate app"
+      environment:
+        APP_IMAGE: "{{ app_image }}"
+
+    - name: Wait for the site to be healthy
+      ansible.builtin.uri:
+        url: "http://127.0.0.1/"
+        status_code: 200
+        timeout: 10
+      register: result
+      until: result.status == 200
+      retries: 15
+      delay: 2
+
+    - name: Record deployed image
+      ansible.builtin.copy:
+        dest: "{{ app_dir }}/.current-tag"
+        content: "{{ app_image }}\n"
+        mode: "0644"
