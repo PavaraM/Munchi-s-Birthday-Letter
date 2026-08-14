@@ -1,0 +1,34 @@
+# ---- Local tooling / editors ----
+.opencode/
+.idea/
+.vscode/
+.DS_Store
+
+# ---- Backups (local artifacts, not source) ----
+_backups/
+
+# ---- Build output ----
+dist/
+
+# ---- Environment / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Node ----
+node_modules/
+
+# ---- Ansible ----
+*.retry
+infra/ansible/.vault_password
+
+# ---- Terraform ----
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+infra/terraform/.terraform.lock.hcl
+
+# ---- Misc ----
+*.log
+nohup.out
