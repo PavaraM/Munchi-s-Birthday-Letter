@@ -1,0 +1,65 @@
+# docker-compose.yml — runs the app container locally and in production.
+#
+# Local dev:
+#   docker compose up -d --build          (SITE_DOMAIN defaults to localhost)
+#   curl http://localhost:8080
+#
+# Production (on the VM, via CI/CD):
+#   SITE_DOMAIN=munchi.duckdns.org docker compose up -d
+#   -> Caddy binds :80/:443 and provisions TLS automatically
+#
+# All values are overridable via env vars / a .env file in this directory.
+
+services:
+  app:
+    image: ${APP_IMAGE:-ghcr.io/pavaram/munchi-birthday:latest}
+    container_name: app
+    restart: unless-stopped
+    environment:
+      # http://localhost = HTTP only; real domain = auto-HTTPS
+      SITE_DOMAIN: ${SITE_DOMAIN:-http://localhost}
+    ports:
+      - "${APP_PORT:-8080}:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Optional self-hosted uptime monitoring (not started by default).
+  # Bring up with:  docker compose --profile monitoring up -d
+  # The OCI security list keeps port 3001 blocked from the internet.
+  uptime-kuma:
+    profiles: ["monitoring"]
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:
+  uptime_kuma_data:
