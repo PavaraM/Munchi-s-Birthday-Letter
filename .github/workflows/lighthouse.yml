@@ -15,4 +15,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Lighthouse CI
-        uses: GoogleChrome/lighthouse-ci-action@v12
+        run: npx --yes @lhci/cli@0.15.1 autorun
