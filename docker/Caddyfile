@@ -53,3 +53,10 @@
         output stderr
     }
 }
+
+# Loopback healthcheck endpoint: container and host health checks hit
+# 127.0.0.1, whose Host header never matches the public site address.
+# This answers them with a plain 200 so docker/compose healthchecks pass.
+http://127.0.0.1 {
+    respond "ok" 200
+}
