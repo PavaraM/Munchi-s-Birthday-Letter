@@ -11,6 +11,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY index.html ./
 COPY scripts/build.sh scripts/build.sh
+COPY fonts/ fonts/
 RUN MINIFY=1 npm run build
 
 # =====================================================================

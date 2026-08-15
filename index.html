@@ -2,14 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>for Munchi Panchi 🌸</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+/* @font-face: locally bundled (self-hosted) — no external font requests. */
+@font-face {
+  font-family: 'Mrs Saint Delafield';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/MrsSaintDelafield-400.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/CormorantGaramond-Italic-400.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(fonts/Quicksand-var.woff2) format('woff2');
+}
 /* ============================================================
    CONFIG-ADJACENT NOTE FOR PAVARA:
    Her display name + birthday are set in the <script> CONFIG
@@ -42,10 +61,11 @@ body{
   background:#0f0a1e;
   position:relative;
   -webkit-tap-highlight-color:transparent;
-  cursor:none;
 }
 body.touch-device{cursor:auto;}
 button{font-family:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+button:hover{opacity:.92;}
+button:active{opacity:1;}
 h1,h2,h3{margin:0;font-weight:400;}
 p{margin:0;}
 
@@ -62,7 +82,7 @@ p{margin:0;}
 /* ---------- persistent UI chrome ---------- */
 #countdown-chip{
   position:fixed;
-  inset-block-start:18px;
+  inset-block-start:calc(env(safe-area-inset-top,0px) + 18px);
   inset-inline-start:50%;
   transform:translateX(-50%);
   z-index:50;
@@ -83,7 +103,7 @@ p{margin:0;}
 
 #mute-btn{
   position:fixed;
-  inset-block-end:18px;
+  inset-block-end:calc(env(safe-area-inset-bottom,0px) + 18px);
   inset-inline-end:18px;
   z-index:50;
   inline-size:42px;
@@ -97,7 +117,9 @@ p{margin:0;}
   align-items:center;
   justify-content:center;
   backdrop-filter:blur(6px);
+  transition:background .2s ease, transform .2s ease;
 }
+#mute-btn:hover{background:rgba(58,26,46,.78);transform:scale(1.06);}
 
 /* ---------- whimsical cursor ---------- */
 #curs{
@@ -105,14 +127,15 @@ p{margin:0;}
   font-size:22px;line-height:1;
   transform:translate(0,0);
   text-shadow:0 0 12px rgba(255,63,164,.7),0 0 24px rgba(201,166,255,.5);
-  transition:opacity .3s;
+  transition:opacity .3s, font-size .2s;
   will-change:transform;
 }
+#curs.interactive{font-size:30px;}
 .touch-device #curs{display:none;}
 
 #progress-dots{
   position:fixed;
-  inset-block-end:18px;
+  inset-block-end:calc(env(safe-area-inset-bottom,0px) + 18px);
   inset-inline-start:50%;
   transform:translateX(-50%);
   z-index:50;
@@ -132,15 +155,15 @@ p{margin:0;}
   inset:0;
   z-index:10;
   display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:90px 24px 80px;
+  overflow-y:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 90px) 24px calc(env(safe-area-inset-bottom,0px) + 80px);
   opacity:0;
   pointer-events:none;
   transition:opacity .9s ease;
 }
 .stage.active{opacity:1;pointer-events:auto;}
 .stage-content{
+  margin:auto;
   max-inline-size:560px;
   inline-size:100%;
   text-align:center;
@@ -157,7 +180,7 @@ p{margin:0;}
   text-transform:uppercase;
   opacity:.7;
   margin-block-end:10px;
-  color:rgba(255,255,255,.65);
+  color:rgba(255,255,255,.7);
 }
 .stage-title{
   font-family:var(--font-display);
@@ -177,9 +200,9 @@ p{margin:0;}
 
 
 .stage-progress{
-  position:absolute;inset-block-start:20px;inset-inline-end:20px;
+  position:absolute;inset-block-start:calc(env(safe-area-inset-top,0px) + 20px);inset-inline-end:20px;
   font-size:.8rem;
-  color:rgba(255,255,255,.5);
+  color:rgba(255,255,255,.7);
   font-family:var(--font-ui);
   font-weight:600;
   letter-spacing:.04em;
@@ -210,8 +233,8 @@ p{margin:0;}
   position:absolute;inset:0;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
   transform:translateX(-100%);
-  animation:shimmer 2s infinite;
 }
+.continue-btn.revealed::before{animation:shimmer 2s infinite;}
 @keyframes shimmer{
   0%{transform:translateX(-100%);}
   100%{transform:translateX(100%);}
@@ -223,7 +246,7 @@ p{margin:0;}
 .continue-btn.locked{
   opacity:.35;
   background:linear-gradient(135deg,#555,#333);
-  color:#999;
+  color:#e8e8e8;
   box-shadow:0 4px 12px rgba(0,0,0,.3);
 }
 .continue-btn:active:not(.locked){transform:scale(.96);}
@@ -239,8 +262,10 @@ p{margin:0;}
   border-radius:34px;
   box-shadow:0 10px 28px rgba(255,63,164,.35);
   touch-action:manipulation;
+  transition:transform .2s ease, box-shadow .2s ease;
 }
 .begin-btn:active{transform:scale(.96);}
+.begin-btn:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(255,63,164,.45);}
 
 /* ---------- STAGE BACKGROUNDS ---------- */
 #stage-candles{
@@ -303,6 +328,11 @@ p{margin:0;}
   line-height:1;
   margin-block-start:-2px;
   filter:drop-shadow(0 8px 20px rgba(0,0,0,.4));
+}
+.cake-body.glow{animation:cakeGlow 2.4s ease-in-out infinite;}
+@keyframes cakeGlow{
+  0%,100%{filter:drop-shadow(0 8px 20px rgba(0,0,0,.4));}
+  50%{filter:drop-shadow(0 0 30px rgba(255,165,0,.6));}
 }
 .cake-message{
   font-family:var(--font-body);
@@ -380,13 +410,19 @@ p{margin:0;}
              linear-gradient(170deg,#1a0a2a,#0f0a1e 65%);
   overflow-y:auto;
   align-items:flex-start;
-  padding:70px 24px 100px;
+  padding:calc(env(safe-area-inset-top,0px) + 70px) 24px calc(env(safe-area-inset-bottom,0px) + 100px);
 }
 .envelope-wrap{cursor:pointer;touch-action:manipulation;}
 .envelope{
   position:relative;inline-size:240px;block-size:156px;margin:10px auto 0;
   transition:opacity .6s ease, transform .6s ease;
 }
+.envelope:not(.open):not(.hidden){animation:envBob 3s ease-in-out infinite;}
+@keyframes envBob{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
+}
+.envelope-wrap:hover .envelope{animation:none;transform:translateY(-4px) scale(1.03);}
 .envelope.hidden{opacity:0;transform:scale(.85);pointer-events:none;}
 .env-body{
   position:absolute;inset:0;border-radius:6px;
@@ -455,9 +491,42 @@ p{margin:0;}
 
 /* ---------- responsive ---------- */
 @media (max-width:480px){
-  .stage{padding:80px 18px 90px;}
+  .stage{padding:calc(env(safe-area-inset-top,0px) + 80px) 18px calc(env(safe-area-inset-bottom,0px) + 90px);}
   #countdown-chip{font-size:.68rem;padding:6px 12px;}
 }
+
+@media (max-height:620px){
+  .stage{padding-block:calc(env(safe-area-inset-top,0px) + 56px) calc(env(safe-area-inset-bottom,0px) + 56px);}
+  .stage-title{font-size:clamp(2.2rem,8vw,3.4rem);margin-block-end:10px;}
+  .landing-name{font-size:clamp(2.4rem,9vw,4rem);}
+  .landing-count{margin-block-end:20px;}
+  .stage-sub{margin-block-end:18px;}
+  .continue-btn{margin-block-start:20px;}
+  #stage-final{padding-block:calc(env(safe-area-inset-top,0px) + 44px) calc(env(safe-area-inset-bottom,0px) + 80px);}
+  .envelope{inline-size:190px;block-size:124px;}
+}
+
+/* countdown chip: hidden on the landing stage (the landing shows its own copy) */
+body[data-stage="landing"] #countdown-chip{display:none;}
+
+/* reveal hint: subtle nudge to keep tapping */
+.tap-hint{
+  font-family:var(--font-ui);
+  font-size:.78rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.55);
+  opacity:0;
+  transition:opacity .5s ease;
+  margin-block-start:16px;
+}
+.tap-hint.show{opacity:1;}
+
+/* visible keyboard focus */
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:6px;}
+.stage:focus-visible{outline:3px dashed var(--lilac);outline-offset:-3px;}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:3px;}
+.envelope-wrap:focus-visible{outline:3px solid var(--gold);outline-offset:6px;border-radius:12px;}
 
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
@@ -466,7 +535,7 @@ p{margin:0;}
 </head>
 <body>
 
-<canvas id="ambient"></canvas>
+<canvas id="ambient" aria-hidden="true"></canvas>
 <div id="curs" aria-hidden="true">✦</div>
 
 <div id="countdown-chip">🌸 <span id="chip-text">loading…</span></div>
@@ -497,7 +566,7 @@ p{margin:0;}
     <div class="cake-scene">
       <div class="candles-row" id="candles-row"></div>
       <div class="cake-body">🎂</div>
-      <p class="cake-message" id="cake-message"></p>
+      <p class="cake-message" id="cake-message" aria-live="polite"></p>
     </div>
     <div class="stage-progress">1/3</div>
     <button class="continue-btn" id="candles-continue" type="button">continue →</button>
@@ -510,7 +579,8 @@ p{margin:0;}
     <div class="eyebrow">✦ write a wish</div>
     <h2 class="stage-title">Wish</h2>
     <p class="stage-sub">tap to write, one word at a time</p>
-    <div id="wish-text" class="reveal-text"></div>
+    <div id="wish-text" class="reveal-text" aria-live="polite"></div>
+    <p class="tap-hint" id="wish-hint">keep tapping…</p>
     <div class="stage-progress">2/3</div>
     <button class="continue-btn" id="wish-continue" type="button">continue →</button>
   </div>
@@ -522,7 +592,8 @@ p{margin:0;}
     <div class="eyebrow">✦ the last stop</div>
     <h2 class="stage-title">Surprise</h2>
     <p class="stage-sub">tap to reveal</p>
-    <div id="surprise-text" class="reveal-text"></div>
+    <div id="surprise-text" class="reveal-text" aria-live="polite"></div>
+    <p class="tap-hint" id="surprise-hint">keep tapping…</p>
     <div class="stage-progress">3/3</div>
     <button class="continue-btn" id="surprise-continue" type="button">continue →</button>
   </div>
@@ -545,7 +616,7 @@ p{margin:0;}
 
     <div class="letter-card" id="letter-card">
       <div class="letter-kicker">happy birthday</div>
-      <h2 id="letter-heading">Dear Munchi Panchi,</h2>
+      <h2 id="letter-heading" tabindex="-1">Dear Munchi Panchi,</h2>
       <div class="letter-text">
         <p>I wanted to write a long ass letter telling how much i love talking to you, how pretty and smart you are, how much i love your aesthetics, music taste, your awesome bubbly personality and everything. But i started overthinking and didn’t want to sound super corny. So here i am writing this generic letter. So yeah, uhmmm, hakuna matata?</p>
         <p>I want to wish a happy and amazing birthday filled with sunshine &amp; rainbows. Maybe Unicorns too.</p>
@@ -604,7 +675,10 @@ setInterval(updateCountdown, 1000);
    AUDIO — procedural chimes, no external files
    ============================================================ */
 let audioCtx;
-let muted = false;
+let muted = (function(){
+  try { return localStorage.getItem('munchi-muted') === '1'; }
+  catch(e){ return false; }
+})();
 function ensureAudio(){
   if (!audioCtx){
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -637,9 +711,12 @@ const CHIMES = {
   splash:  [392, 330, 494],
   open:    [523, 659, 784, 1046, 1318]
 };
-document.getElementById('mute-btn').addEventListener('click', function(){
+const muteBtn = document.getElementById('mute-btn');
+muteBtn.textContent = muted ? '🔇' : '🔊';
+muteBtn.addEventListener('click', function(){
   muted = !muted;
   this.textContent = muted ? '🔇' : '🔊';
+  try { localStorage.setItem('munchi-muted', muted ? '1' : '0'); } catch(e){}
   if (!muted) ensureAudio();
 });
 
@@ -770,16 +847,28 @@ if (isTouch) document.body.classList.add('touch-device');
 const curs = document.getElementById('curs');
 let cursX = -100, cursY = -100;
 let cursCX = -100, cursCY = -100;
+let lastCursMove = 0;
 
 function moveCurs(e){
   cursCX = e.clientX;
   cursCY = e.clientY;
+  lastCursMove = Date.now();
+  if (e.target && e.target.closest && e.target.closest('button,.envelope-wrap')){
+    if (!curs.classList.contains('interactive')){
+      curs.classList.add('interactive');
+      curs.textContent = '✨';
+    }
+  } else if (curs.classList.contains('interactive')){
+    curs.classList.remove('interactive');
+    curs.textContent = '✦';
+  }
 }
 
 function tickCurs(){
-  cursX += (cursCX - cursX) * 0.2;
-  cursY += (cursCY - cursY) * 0.2;
+  cursX += (cursCX - cursX) * 0.08;
+  cursY += (cursCY - cursY) * 0.08;
   curs.style.transform = 'translate(' + cursX + 'px,' + cursY + 'px)';
+  curs.style.opacity = (Date.now() - lastCursMove > 2000) ? '0' : '1';
   requestAnimationFrame(tickCurs);
 }
 tickCurs();
@@ -825,13 +914,19 @@ function setActiveDot(name){
 
 function goToStage(name){
   document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
-  document.getElementById('stage-' + name).classList.add('active');
+  const target = document.getElementById('stage-' + name);
+  target.classList.add('active');
+  target.scrollTop = 0;
   currentTheme = THEMES[name] || THEMES.landing;
   setActiveDot(name);
+  document.body.dataset.stage = name;
+  target.focus({preventScroll:true});
 }
+document.body.dataset.stage = 'landing';
 
 function revealContinue(id){
   document.getElementById(id).classList.add('revealed');
+  document.getElementById(id).focus({preventScroll:true});
 }
 
 /* ---- landing ---- */
@@ -885,10 +980,12 @@ JOURNEY.forEach((stage, i) => {
         const msg = document.getElementById('cake-message');
         msg.textContent = "make a wish… 🌟";
         msg.classList.add('show');
+        document.querySelector('.cake-body').classList.add('glow');
         revealContinue(stage + '-continue');
       }
     } else if (stage === 'wish') {
       if (revealIdx >= WISH_WORDS.length) return;
+      document.getElementById('wish-hint').classList.add('show');
       const txtEl = document.getElementById('wish-text');
       const span = document.createElement('span');
       span.className = 'word';
@@ -897,10 +994,12 @@ JOURNEY.forEach((stage, i) => {
       revealIdx++;
       playChime(CHIMES.magic, 0.3);
       if (revealIdx >= WISH_WORDS.length) {
+        document.getElementById('wish-hint').classList.remove('show');
         revealContinue(stage + '-continue');
       }
     } else if (stage === 'surprise') {
       if (revealIdx >= SURPRISE_WORDS.length) return;
+      document.getElementById('surprise-hint').classList.add('show');
       const txtEl = document.getElementById('surprise-text');
       const span = document.createElement('span');
       span.className = 'word';
@@ -909,6 +1008,7 @@ JOURNEY.forEach((stage, i) => {
       revealIdx++;
       playChime(CHIMES.splash, 0.3);
       if (revealIdx >= SURPRISE_WORDS.length) {
+        document.getElementById('surprise-hint').classList.remove('show');
         revealContinue(stage + '-continue');
       }
     }
@@ -932,6 +1032,7 @@ envWrap.addEventListener('click', function(){
   setTimeout(()=>{
     env.classList.add('hidden');
     document.getElementById('letter-card').classList.add('show');
+    document.getElementById('letter-heading').focus({preventScroll:true});
     burst(THEMES.final,
       window.innerWidth/2,
       window.innerHeight/2,

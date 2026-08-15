@@ -21,6 +21,15 @@ mkdir -p "$DIST_DIR"
 echo ">> copying $SRC -> $DIST_DIR/index.html"
 cp "$SRC" "$DIST_DIR/index.html"
 
+# Self-hosted fonts: always bundled (index.html references fonts/ via @font-face).
+if [[ -d "fonts" ]]; then
+  mkdir -p "$DIST_DIR/fonts"
+  echo ">> copying fonts/ -> $DIST_DIR/fonts/"
+  cp fonts/*.woff2 "$DIST_DIR/fonts/"
+else
+  echo "!! fonts/ not found — site will fall back to system fonts" >&2
+fi
+
 if [[ "${MINIFY:-0}" == "1" ]]; then
   if [[ -x "node_modules/.bin/html-minifier-terser" ]]; then
     echo ">> minifying (html-minifier-terser, whitespace + comments only)"
@@ -37,8 +46,14 @@ fi
 
 echo ">> precompressing"
 gzip -9 -k -f "$DIST_DIR/index.html"
+for f in "$DIST_DIR"/fonts/*.woff2; do
+  [[ -f "$f" ]] && gzip -9 -k -f "$f" || true
+done
 if command -v brotli >/dev/null 2>&1; then
   brotli -f -q 11 "$DIST_DIR/index.html"
+  for f in "$DIST_DIR"/fonts/*.woff2; do
+    [[ -f "$f" ]] && brotli -f -q 11 "$f" || true
+  done
 else
   echo "!! brotli not installed, skipping .br variant" >&2
 fi

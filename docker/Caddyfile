@@ -30,11 +30,11 @@
 
     # Content-Security-Policy scoped to what the site actually uses:
     #   inline <style>/<script> (the whole app is one file),
-    #   Google Fonts CSS from fonts.googleapis.com,
-    #   font files from fonts.gstatic.com,
+    #   self-hosted fonts from /fonts,
     #   favicon as data: URI.
+    #   (Google Fonts removed — fonts are bundled locally, no external requests.)
     header / {
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'"
     }
 
     # Cache policy: single-file app, short max-age is safe and correct.
