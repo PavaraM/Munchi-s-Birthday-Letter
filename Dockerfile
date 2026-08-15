@@ -4,7 +4,7 @@
 # Stage 1 — builder: minify + precompress the site into dist/
 # Conservative: only whitespace/comment stripping, JS/CSS untouched.
 # =====================================================================
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 RUN apk add --no-cache brotli bash && rm -rf /var/cache/apk/*
 WORKDIR /src
 COPY package.json package-lock.json ./
