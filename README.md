@@ -53,7 +53,7 @@ flowchart LR
 │   └── dependabot.yml         # npm, Docker, GitHub Actions updates
 └── infra/
     ├── terraform/             # OCI: compartment, VCN, security list, A1 instance
-    └── ansible/               # bootstrap: Docker, UFW, fail2ban, auto-updates
+    └── ansible/               # bootstrap: Docker, firewalld, fail2ban, auto-updates
 ```
 
 ## Cost: $0/month
@@ -120,14 +120,14 @@ cp terraform.tfvars.example terraform.tfvars   # fill in tenancy_ocid, region, s
 terraform init && terraform apply              # compartment, VCN, security list, A1 instance
 
 cd ../ansible
-ansible-playbook playbooks/bootstrap.yml        # Docker, UFW, fail2ban, auto-updates, first deploy
+ansible-playbook playbooks/bootstrap.yml        # Docker, firewalld, fail2ban, auto-updates, first deploy
 ```
 
-`bootstrap.yml` is idempotent — safe to re-run. It installs Docker, UFW (allow 22/80/443 only), fail2ban for sshd, `dnf-automatic` security updates, hardens sshd (key-only, root disabled), and does the initial deploy of the container.
+`bootstrap.yml` is idempotent — safe to re-run. It installs Docker, firewalld (allow 22/80/443 only), fail2ban for sshd, `dnf-automatic` security updates, hardens sshd (key-only, root disabled), and does the initial deploy of the container.
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md) for the full control map. Highlights: Caddy auto-HTTPS + HSTS, a strict CSP, no-storage/non-root read-only container, cloud security list + UFW host firewall, fail2ban, gitleaks + Trivy + Hadolint in CI, Dependabot, and secrets that live only in GitHub Secrets / `.env` on the VM.
+See [SECURITY.md](./SECURITY.md) for the full control map. Highlights: Caddy auto-HTTPS + HSTS, a strict CSP, no-storage/non-root read-only container, cloud security list + firewalld host firewall, fail2ban, gitleaks + Trivy + Hadolint in CI, Dependabot, and secrets that live only in GitHub Secrets / `.env` on the VM.
 
 ## Monitoring
 

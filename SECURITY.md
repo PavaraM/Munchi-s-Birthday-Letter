@@ -16,7 +16,7 @@ active vulnerabilities.
 | TLS | Automatic Let's Encrypt certificates via Caddy (auto-renewal, HTTP→HTTPS) |
 | Headers | `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, HSTS |
 | Container | Non-root runtime user, pinned base image digests, read-only rootfs, Trivy + Hadolint gating in CI |
-| Host | UFW (22/80/443 only), fail2ban on sshd, `unattended-upgrades`, key-only SSH (root login disabled) |
+| Host | firewalld (22/80/443 only), fail2ban on sshd, `dnf-automatic` security updates, key-only SSH (root login disabled) |
 | Secrets | Never committed; `.env.example` only; `gitleaks` secret-scan in CI; GitHub Secrets / Ansible Vault |
 | Supply chain | Dependabot for base image + GitHub Actions + npm dev-deps; GHCR image pushed with build provenance |
 

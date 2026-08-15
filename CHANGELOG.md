@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Caddyfile` with automatic HTTPS, security headers, gzip/brotli
 - CI/CD via GitHub Actions: lint, secret-scan, build, trivy/hadolint, GHCR push, SSH deploy
 - Infrastructure as Code: Terraform for OCI (compartment, VCN, security list, A1 instance)
-- Configuration management: Ansible bootstrap (Docker, UFW, fail2ban, unattended-upgrades)
+- Configuration management: Ansible bootstrap (Docker, firewalld, fail2ban, dnf-automatic)
 - Observability: Uptime Kuma, Lighthouse CI
 - Documentation: README, runbook, architecture
 

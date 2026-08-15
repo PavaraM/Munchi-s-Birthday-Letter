@@ -20,7 +20,7 @@
       register: update_result
       changed_when: "'Nothing to do' not in update_result.stdout"
 
-    - name: Install EPEL repository (provides ufw, fail2ban)
+    - name: Install EPEL repository (provides fail2ban)
       ansible.builtin.command:
         cmd: dnf --noplugins -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
       register: epel_result
@@ -34,7 +34,7 @@
 
     - name: Install base packages
       ansible.builtin.command:
-        cmd: dnf --noplugins --setopt=install_weak_deps=0 -y install curl python39 docker-ce docker-ce-cli containerd.io docker-compose-plugin ufw fail2ban dnf-automatic
+        cmd: dnf --noplugins --setopt=install_weak_deps=0 -y install curl python39 docker-ce docker-ce-cli containerd.io docker-compose-plugin fail2ban dnf-automatic
       register: pkg_result
       changed_when: "'Nothing to do' not in pkg_result.stdout"
 
@@ -74,26 +74,39 @@
         groups: docker
         append: true
 
-    # ---- firewall (UFW) ----
-    - name: Allow SSH
-      ansible.builtin.command: ufw allow {{ ssh_port }}/tcp
+    # ---- host firewall (firewalld; the OCI security list is the edge firewall) ----
+    - name: Ensure firewalld is running
+      ansible.builtin.systemd:
+        name: firewalld
+        enabled: true
+        state: started
+
+    - name: Allow SSH through firewalld
+      ansible.builtin.command:
+        cmd: firewall-cmd --permanent --add-port={{ ssh_port }}/tcp
+      register: fw_result
       changed_when: false
 
-    - name: Allow HTTP
-      ansible.builtin.command: ufw allow 80/tcp
+    - name: Allow HTTP through firewalld
+      ansible.builtin.command:
+        cmd: firewall-cmd --permanent --add-port=80/tcp
       changed_when: false
 
-    - name: Allow HTTPS
-      ansible.builtin.command: ufw allow 443/tcp
+    - name: Allow HTTPS through firewalld
+      ansible.builtin.command:
+        cmd: firewall-cmd --permanent --add-port=443/tcp
       changed_when: false
 
-    - name: Default deny incoming
-      ansible.builtin.command: ufw default deny incoming
+    - name: Reload firewalld to apply permanent rules
+      ansible.builtin.command:
+        cmd: firewall-cmd --reload
       changed_when: false
 
-    - name: Enable UFW (non-interactive)
-      ansible.builtin.command: ufw --force enable
-      changed_when: false
+    - name: Remove UFW package (unused; conflicts with firewalld)
+      ansible.builtin.shell:
+        cmd: rpm -q ufw >/dev/null 2>&1 && dnf --noplugins -y remove ufw || true
+      register: ufw_remove
+      changed_when: "'Removed' in ufw_remove.stdout"
 
     # ---- fail2ban (sshd) ----
     - name: Configure fail2ban jail for sshd
