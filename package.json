@@ -10,7 +10,7 @@
     "serve": "bash scripts/serve.sh"
   },
   "devDependencies": {
-    "html-validate": "^9.3.0",
+    "html-validate": "^11.6.2",
     "html-minifier-terser": "^7.2.0"
   }
 }
