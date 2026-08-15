@@ -18,9 +18,8 @@ flowchart LR
 
     subgraph OCI \[Always Free\]
         SL[Security list<br/>22/80/443 only]
-        VM[VM.Standard.A1.Flex<br/>4 OCPU / 24 GB RAM<br/>Oracle Linux 8]
+        VM[VM.Standard.E2.1.Micro<br/>1 OCPU / 1 GB RAM<br/>Oracle Linux 8]
         CADDY[Caddy<br/>auto-HTTPS + headers]
-        KUMA[Uptime Kuma<br/>internal only]
     end
 
     DNS[DuckDNS<br/>munchi.duckdns.org]
@@ -30,11 +29,10 @@ flowchart LR
     GHCR -->|pull| VM
     DEPLOY -->|SSH| VM
     VM --> CADDY
-    VM --> KUMA
     CADDY --> DNS
 ```
 
-**Flow:** push to `main` → CI lints/tests/scans/pushes the image → Deploy pushes a new tagged image and re-runs `docker compose up` over SSH with healthcheck + auto-rollback. Caddy terminates TLS via Let's Encrypt and serves the precompressed site. Uptime Kuma (cloud-blocked from the internet) and Lighthouse watch it from inside.
+**Flow:** push to `main` → CI lints/tests/scans/pushes the image → Deploy pushes a new tagged image and re-runs `docker compose up` over SSH with healthcheck + auto-rollback. Caddy terminates TLS via Let's Encrypt and serves the precompressed site. Lighthouse CI audits it weekly from outside.
 
 ## Repo layout
 
@@ -52,7 +50,7 @@ flowchart LR
 │   ├── workflows/lighthouse.yml # weekly Lighthouse audits
 │   └── dependabot.yml         # npm, Docker, GitHub Actions updates
 └── infra/
-    ├── terraform/             # OCI: compartment, VCN, security list, A1 instance
+    ├── terraform/             # OCI: compartment, VCN, security list, Always Free instance
     └── ansible/               # bootstrap: Docker, firewalld, fail2ban, auto-updates
 ```
 
@@ -62,15 +60,20 @@ flowchart LR
 |---------|---------|------|
 | GitHub Actions | CI/CD, audits | free (public repo) |
 | GHCR | container registry | free (public) |
-| Oracle Cloud **Always Free** A1 | 4 OCPU / 24 GB VM | $0 |
+| Oracle Cloud **Always Free** E2.1.Micro | 1 OCPU / 1 GB VM | $0 |
 | DuckDNS | free dynamic DNS | $0 |
 | Let's Encrypt | TLS certs | $0 |
+
+This site runs on the 1 GB E2.1.Micro. The IaC defaults to the Ampere **A1.Flex**
+(4 OCPU / 24 GB, also free) when A1 capacity is available in your home region;
+`instance_shape` in `terraform.tfvars` is the switch. Deployed here in
+`ap-sydney-1`.
 
 ## Prerequisites
 
 - Docker (BuildKit), Docker Compose, Node.js ≥ 22, GNU Make
 - `terraform` + `ansible` (only needed to provision the VM)
-- Oracle Cloud account with the **home region** set (A1 is free in home region only)
+- Oracle Cloud account (Always Free capacity lives in your **home region** only; pick the region in `terraform.tfvars`)
 - DuckDNS account (for the production domain)
 
 ## Local development
@@ -92,7 +95,7 @@ set it to your real domain and Caddy provisions HTTPS automatically.
 
 ## Deployment pipeline
 
-1. **CI** (`ci.yml`) — on push/PR: `html-validate`, gitleaks secret scan, build + smoke test, hadolint, then a BuildKit build pushed to GHCR tagged `latest`, `sha-<sha>`, and `dev`; Trivy scans the image (HIGH/CRITICAL gating) with SARIF upload.
+1. **CI** (`ci.yml`) — on push/PR: `html-validate`, gitleaks secret scan, build + smoke test, hadolint, then a BuildKit build pushed to GHCR tagged `latest`, `sha-<sha>`, and `dev`; Trivy scans the image (CRITICAL-only exit gate, full SARIF uploaded).
 2. **Deploy** (`deploy.yml`) — on push to `main`: builds/pushes a `sha-<sha>` tag, then `scripts/deploy.sh` SSHes to the VM, tags the running image as `app:prev`, pulls + force-recreates the `app` container, polls the healthcheck, and **auto-rolls-back** if it never comes up.
 3. **Rollback** — `make rollback` (or `scripts/rollback.sh`) restores `app:prev`.
 
@@ -100,7 +103,7 @@ set it to your real domain and Caddy provisions HTTPS automatically.
 
 | Secret | Value |
 |--------|-------|
-| `VM_HOST` | `munchi.duckdns.org` |
+| `VM_HOST` | `159.13.61.172` (the VM's public IP — DuckDNS resolves to it) |
 | `VM_USER` | `opc` |
 | `VM_SSH_PORT` | `22` |
 | `VM_SSH_KEY` | the private key matching the public key Terraform injects |
@@ -117,11 +120,14 @@ gh api --method PATCH /user/packages/container/munchi-birthday \
 ```bash
 cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars   # fill in tenancy_ocid, region, ssh_public_key
-terraform init && terraform apply              # compartment, VCN, security list, A1 instance
+terraform init && terraform apply              # compartment, VCN, security list, Always Free instance
 
 cd ../ansible
 ansible-playbook playbooks/bootstrap.yml        # Docker, firewalld, fail2ban, auto-updates, first deploy
 ```
+
+If A1 capacity is unavailable in your home region, set `instance_shape = "VM.Standard.E2.1.Micro"`
+in `terraform.tfvars` (1 OCPU / 1 GB — enough for this static site; see the cost note above).
 
 `bootstrap.yml` is idempotent — safe to re-run. It installs Docker, firewalld (allow 22/80/443 only), fail2ban for sshd, `dnf-automatic` security updates, hardens sshd (key-only, root disabled), and does the initial deploy of the container.
 
@@ -131,8 +137,7 @@ See [SECURITY.md](./SECURITY.md) for the full control map. Highlights: Caddy aut
 
 ## Monitoring
 
-- **Uptime Kuma** runs on the VM, internet-blocked; reach it via SSH tunnel:
-  `ssh -L 3001:localhost:3001 opc@munchi.duckdns.org` then open `http://localhost:3001`. Bring it up with `docker compose --profile monitoring up -d`.
+- **Uptime Kuma** is *not* deployed here — the 1 GB E2.1.Micro has no headroom for it. The container stays covered by Docker's built-in healthcheck (deploy auto-rolls-back on failure) and weekly Lighthouse audits. On a bigger VM you can still add it: `docker compose --profile monitoring up -d` (internet-blocked, reachable via `ssh -L 3001:localhost:3001 opc@munchi.duckdns.org`).
 - **Lighthouse CI** audits performance/accessibility/SEO weekly and on demand (`.github/workflows/lighthouse.yml`, assertions in `.lighthouserc.json`).
 
 ## Operations
