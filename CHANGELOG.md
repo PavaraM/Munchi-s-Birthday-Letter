@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Viewport meta uses `viewport-fit=cover` (pinch-zoom re-enabled).
 - Contrast bumps: eyebrows/progress text `.7`, locked button `#e8e8e8`.
 
+### Fixed
+
+- Lighthouse CI workflow ran `GoogleChrome/lighthouse-ci-action` (repo removed from
+  GitHub) — now runs `@lhci/cli` directly; weekly audits are green again.
+
 ## [0.2.0] - 2026-08-14
 
 ### Added
