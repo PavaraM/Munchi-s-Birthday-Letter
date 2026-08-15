@@ -165,8 +165,8 @@
       ansible.builtin.template:
         src: "../templates/env.j2"
         dest: "{{ app_dir }}/.env"
-        owner: root
-        group: root
+        owner: opc
+        group: opc
         mode: "0600"
 
     - name: Pull app image
