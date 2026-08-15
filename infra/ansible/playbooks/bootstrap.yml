@@ -1,7 +1,12 @@
 ---
 # bootstrap.yml — one-time provisioning of the Oracle Linux VM.
 #
-# Run:  ansible-playbook playbooks/bootstrap.yml
+# Prereq: this playbook must run with python39 on the target and dnf via the
+# CLI (the OL8 python39 stream has no python39-dnf bindings), i.e.:
+#   ansible-playbook -e ansible_host=<ip> \
+#     -e ansible_python_interpreter=/usr/bin/python3.9 \
+#     -e app_image=ghcr.io/pavaram/munchi-birthday:dev \
+#     playbooks/bootstrap.yml
 # Safe to re-run; all tasks are idempotent.
 
 - name: Bootstrap Munchi birthday VM
@@ -10,22 +15,28 @@
 
   tasks:
     - name: Update all packages
-      ansible.builtin.dnf:
-        name: "*"
-        state: latest
-      register: dnf_update
+      ansible.builtin.command:
+        cmd: dnf --noplugins -y update
+      register: update_result
+      changed_when: "'Nothing to do' not in update_result.stdout"
+
+    - name: Install EPEL repository (provides ufw, fail2ban)
+      ansible.builtin.command:
+        cmd: dnf --noplugins -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+      register: epel_result
+      changed_when: "'already installed' not in epel_result.stdout"
+
+    - name: Add Docker CE repository
+      ansible.builtin.command:
+        cmd: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
 
     - name: Install base packages
-      ansible.builtin.dnf:
-        name:
-          - docker
-          - docker-compose-plugin
-          - epel-release
-          - curl
-          - ufw
-          - fail2ban
-          - dnf-automatic
-        state: present
+      ansible.builtin.command:
+        cmd: dnf --noplugins --setopt=install_weak_deps=0 -y install curl python39 docker-ce docker-ce-cli containerd.io docker-compose-plugin ufw fail2ban dnf-automatic
+      register: pkg_result
+      changed_when: "'Nothing to do' not in pkg_result.stdout"
 
     - name: Enable automatic security updates (dnf-automatic)
       ansible.builtin.lineinfile:
@@ -33,11 +44,23 @@
         regexp: "^apply_updates"
         line: "apply_updates = yes"
 
+    - name: Restrict automatic updates to security errata only
+      ansible.builtin.lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "^upgrade_type"
+        line: "upgrade_type = security"
+
     - name: Start dnf-automatic timer
       ansible.builtin.systemd:
         name: dnf-automatic-install.timer
         enabled: true
         state: started
+
+    - name: Disable Oracle Cloud Agent updater (avoids rpmdb contention on 1GB RAM)
+      ansible.builtin.systemd:
+        name: oracle-cloud-agent-updater
+        enabled: false
+        state: stopped
 
     - name: Enable and start docker
       ansible.builtin.systemd:
