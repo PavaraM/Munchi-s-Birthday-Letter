@@ -25,9 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Containerization: multi-stage `Dockerfile` (minify + precompress) with Caddy runtime
 - `Caddyfile` with automatic HTTPS, security headers, gzip/brotli
 - CI/CD via GitHub Actions: lint, secret-scan, build, trivy/hadolint, GHCR push, SSH deploy
-- Infrastructure as Code: Terraform for OCI (compartment, VCN, security list, A1 instance)
+- Infrastructure as Code: Terraform for OCI (compartment, VCN, security list, Always Free instance)
 - Configuration management: Ansible bootstrap (Docker, firewalld, fail2ban, dnf-automatic)
-- Observability: Uptime Kuma, Lighthouse CI
+- Observability: Lighthouse CI (Uptime Kuma optional — not deployed on the 1 GB Micro)
 - Documentation: README, runbook, architecture
 
 ### Note

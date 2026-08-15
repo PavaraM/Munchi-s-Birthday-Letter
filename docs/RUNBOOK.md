@@ -64,16 +64,22 @@ internet (both firewalld *and* the OCI security list must allow them).
 
 ## Monitoring
 
-### Uptime Kuma (via SSH tunnel)
+### Uptime Kuma (not deployed on this VM)
+
+Kuma is *not* running here — the 1 GB E2.1.Micro has no spare RAM for it.
+Uptime is covered by Docker's healthcheck (auto-rollback) and weekly
+Lighthouse audits. If you later move to a bigger Always Free shape (e.g.
+A1.Flex 4 OCPU/24 GB), bring Kuma up with:
 
 ```bash
 ssh -L 3001:localhost:3001 opc@munchi.duckdns.org
 # open http://localhost:3001
 ```
 
-Add a monitor for `https://munchi.duckdns.org/` (HTTP, 60 s, retries 3) and an
-optional Heartbeat/notification channel. Port 3001 is intentionally blocked by
-the OCI security list — the tunnel is the only way in.
+then start it: `docker compose --profile monitoring up -d`. Add a monitor for
+`https://munchi.duckdns.org/` (HTTP, 60 s, retries 3) and an optional
+Heartbeat/notification channel. Port 3001 is intentionally blocked by the OCI
+security list — the tunnel is the only way in.
 
 ### Lighthouse
 
@@ -95,10 +101,10 @@ ssh opc@munchi.duckdns.org "docker run --rm -v munchi-birthday_caddy_data:/data 
 | Symptom | Cause / fix |
 |---------|-------------|
 | Deploy fails, container keeps rolling back | `scripts/deploy.sh` already rolled back. Check `docker logs app`, then `make rollback`. |
-| Site down | `ssh ... "docker compose -f /opt/munchi-birthday/docker-compose.yml ps"`. Container exited → `docker logs`; host OOM → A1 has 24 GB, unlikely. |
+| Site down | `ssh ... "docker compose -f /opt/munchi-birthday/docker-compose.yml ps"`. Container exited → `docker logs`; host OOM → this is a 1 GB Micro VM, so check `dmesg | grep -i oom` and `docker stats` under memory pressure. |
 | `502` from the VM but container healthy | Check OCI security list + `firewall-cmd --list-ports` on the host (both must allow 80/443). |
 | Cert errors | Stale DNS (see above) or 80/443 blocked. Restart app after fixing. |
-| Uptime Kuma alerting | The Kuma container is running under the `monitoring` profile — it isn't started by default deploys. |
+| Uptime Kuma alerting | Kuma isn't deployed here (see Monitoring above); use Docker healthcheck + Lighthouse, or bring Kuma up with `--profile monitoring` on a bigger VM. |
 | Disk full | Logs rotate at 10 MB × 3. Images accumulate on re-deploy — prune: `ssh ... "docker image prune -a --filter until=720h"`. |
 
 ## Incident report template
