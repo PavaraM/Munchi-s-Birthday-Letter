@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-15
+
+### Added
+
+- Self-hosted fonts (Mrs Saint Delafield, Cormorant Garamond, Quicksand variable)
+  — removes all external Google Fonts requests; no third-party connections.
+- Scrollable stages + safe-area insets for notched/landscape/short viewports.
+- Decorative trailing sparkle cursor with idle fade and interactive states.
+- Hover states on buttons, begin button, mute button, and envelope.
+- Keyboard accessibility: stage focus management, `:focus-visible` rings,
+  `aria-live` on revealed content, focus on continue/envelope/letter.
+- Mute preference persisted in `localStorage` (`munchi-muted`).
+- Polish: countdown chip hidden on landing, envelope idle bob, gated shimmer,
+  cake glow when all candles lit, "keep tapping…" reveal hints.
+
+### Changed
+
+- Native cursor restored (`cursor:none` removed); sparkle is now decorative only.
+- Viewport meta uses `viewport-fit=cover` (pinch-zoom re-enabled).
+- Contrast bumps: eyebrows/progress text `.7`, locked button `#e8e8e8`.
+
 ## [0.2.0] - 2026-08-14
 
 ### Added

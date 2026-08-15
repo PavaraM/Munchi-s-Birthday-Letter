@@ -54,9 +54,11 @@ check "wish words present"    contains '"may","your","year"' "$body_file"
 check "countdown config"      contains "birthdayMonth: 6" "$body_file"
 check "csp style tag intact"  contains "var(--hot-pink)" "$body_file"
 
-# external dependency the site depends on
-check "Google Fonts reachable" curl -fsS -o /dev/null \
-  "https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+# self-hosted fonts the site references (must be bundled and served)
+for font in MrsSaintDelafield-400 CormorantGaramond-Italic-400 Quicksand-var; do
+  check "font $font served" curl -fsS -o /dev/null "$URL/fonts/$font.woff2"
+done
+check "no external font refs" bash -c "! grep -qE 'fonts.googleapis|fonts.gstatic' '$body_file'"
 
 rm -f "$body_file"
 
