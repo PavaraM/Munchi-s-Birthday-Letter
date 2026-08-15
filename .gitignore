@@ -25,9 +25,10 @@ infra/ansible/.vault_password
 # ---- Terraform ----
 *.tfstate
 *.tfstate.*
+*.tfvars
+*.tfvars.json
 .terraform/
 crash.log
-infra/terraform/.terraform.lock.hcl
 
 # ---- Misc ----
 *.log

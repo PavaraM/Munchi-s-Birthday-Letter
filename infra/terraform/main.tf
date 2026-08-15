@@ -122,11 +122,11 @@ data "oci_identity_availability_domains" "ads" {
   compartment_id = local.compartment_id
 }
 
-data "oci_core_images" "ol8_aarch64" {
+data "oci_core_images" "ol8" {
   compartment_id           = local.compartment_id
   operating_system         = "Oracle Linux"
   operating_system_version = "8"
-  shape                    = "VM.Standard.A1.Flex"
+  shape                    = var.instance_shape
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
@@ -134,17 +134,20 @@ data "oci_core_images" "ol8_aarch64" {
 resource "oci_core_instance" "main" {
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[var.availability_domain_index].name
   compartment_id      = local.compartment_id
-  shape               = "VM.Standard.A1.Flex"
+  shape               = var.instance_shape
   display_name        = "munchi-birthday"
 
-  shape_config {
-    ocpus         = var.instance_ocpus
-    memory_in_gbs = var.instance_memory_gbs
+  dynamic "shape_config" {
+    for_each = var.instance_shape == "VM.Standard.A1.Flex" ? [1] : []
+    content {
+      ocpus         = var.instance_ocpus
+      memory_in_gbs = var.instance_memory_gbs
+    }
   }
 
   source_details {
     source_type = "image"
-    source_id   = data.oci_core_images.ol8_aarch64.images[0].id
+    source_id   = data.oci_core_images.ol8.images[0].id
   }
 
   metadata = {

@@ -55,6 +55,12 @@ variable "availability_domain_index" {
   default     = 0
 }
 
+variable "instance_shape" {
+  description = "VM shape. VM.Standard.A1.Flex (Always Free ARM, 4 OCPU/24GB max) or VM.Standard.E2.1.Micro (Always Free AMD, 1GB) when A1 capacity is unavailable"
+  type        = string
+  default     = "VM.Standard.A1.Flex"
+}
+
 variable "instance_ocpus" {
   description = "A1 OCPUs (Always Free max = 4)"
   type        = number
