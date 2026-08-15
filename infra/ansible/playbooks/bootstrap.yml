@@ -149,8 +149,8 @@
       ansible.builtin.file:
         path: "{{ app_dir }}"
         state: directory
-        owner: root
-        group: root
+        owner: opc
+        group: opc
         mode: "0755"
 
     - name: Copy docker-compose.yml
