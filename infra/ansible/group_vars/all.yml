@@ -1,0 +1,6 @@
+---
+# Shared variables for the Munchi VM.
+domain: "munchi.duckdns.org"
+app_dir: "/opt/munchi-birthday"
+app_image: "ghcr.io/pavaram/munchi-birthday:latest"
+ssh_port: 22

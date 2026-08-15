@@ -1,0 +1,62 @@
+# Caddy configuration for the birthday letter.
+#
+# SITE_DOMAIN controls the site address:
+#   http://localhost           -> plain HTTP on :80 (local dev)
+#   munchi.duckdns.org         -> automatic HTTPS via Let's Encrypt (production)
+#
+# TLS certificates, renewal, and HTTP->HTTPS redirects are handled
+# automatically by Caddy when a real domain is configured.
+
+{$SITE_DOMAIN:http://localhost} {
+    root * /srv
+
+    # Serve precompressed .br/.gz sidecars from the image when the client
+    # accepts them (falls back to the raw file otherwise). Stock Caddy has no
+    # brotli encoder, so this is the zero-module way to deliver .br.
+    file_server {
+        precompressed
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        -Server
+        -X-Powered-By
+    }
+
+    # Content-Security-Policy scoped to what the site actually uses:
+    #   inline <style>/<script> (the whole app is one file),
+    #   Google Fonts CSS from fonts.googleapis.com,
+    #   font files from fonts.gstatic.com,
+    #   favicon as data: URI.
+    header / {
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'"
+    }
+
+    # Cache policy: single-file app, short max-age is safe and correct.
+    header / {
+        Cache-Control "public, max-age=300"
+    }
+
+    # The favicon is a data: URI embedded in the HTML; respond 204 for
+    # any direct /favicon.ico request instead of a 404.
+    handle /favicon.ico {
+        respond "" 204
+    }
+
+    # Simple access/error logs go to stderr -> docker logs.
+    log {
+        output stderr
+    }
+}
+
+# Loopback healthcheck endpoint: container and host health checks hit
+# 127.0.0.1, whose Host header never matches the public site address.
+# This answers them with a plain 200 so docker/compose healthchecks pass.
+http://127.0.0.1 {
+    respond "ok" 200
+}

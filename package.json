@@ -1,0 +1,16 @@
+{
+  "name": "munchi-birthday-letter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DevOps tooling around the static birthday letter site",
+  "scripts": {
+    "lint": "html-validate index.html",
+    "build": "bash scripts/build.sh",
+    "test": "bash scripts/smoke-test.sh",
+    "serve": "bash scripts/serve.sh"
+  },
+  "devDependencies": {
+    "html-validate": "^9.3.0",
+    "html-minifier-terser": "^7.2.0"
+  }
+}

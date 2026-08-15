@@ -1,0 +1,6 @@
+# hadolint configuration
+# DL3018 is intentionally ignored: both base images use floating tags
+# (node:22-alpine, caddy:2-alpine), so pinning apk package versions would
+# not meaningfully pin the supply chain.
+ignored:
+  - DL3018
