@@ -17,6 +17,16 @@ SSH_KEY="${VM_SSH_KEY:-}"
 COMPOSE_FILE="/opt/munchi-birthday/docker-compose.yml"
 APP_INTERNAL_PORT="${APP_INTERNAL_PORT:-80}"
 
+# VM_SSH_KEY is either a path to a key file (local use) or the literal
+# private key content (CI secrets). If it looks like content, materialize it.
+if [[ -n "$SSH_KEY" && "$SSH_KEY" == *"PRIVATE KEY"* ]]; then
+  SSH_KEY_FILE="$(mktemp)"
+  printf '%s\n' "$SSH_KEY" > "$SSH_KEY_FILE"
+  chmod 600 "$SSH_KEY_FILE"
+  SSH_KEY="$SSH_KEY_FILE"
+  trap 'rm -f "$SSH_KEY_FILE"' EXIT
+fi
+
 ssh_args=(-p "$SSH_PORT" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=20)
 [[ -n "$SSH_KEY" ]] && ssh_args+=(-i "$SSH_KEY")
 
@@ -25,6 +35,7 @@ echo ">> deploy $APP_IMAGE -> $VM_USER@$VM_HOST:$SSH_PORT"
 ssh "${ssh_args[@]}" "$VM_USER@$VM_HOST" bash -s <<REMOTE_SCRIPT
 set -euo pipefail
 cd /opt/munchi-birthday
+export APP_IMAGE="$APP_IMAGE"
 
 # Tag the currently-running image so rollback.sh can restore it.
 if [[ -n "\$(docker ps -q --filter name=app 2>/dev/null)" ]]; then
